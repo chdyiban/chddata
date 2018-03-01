@@ -1,0 +1,188 @@
+{extend name="$_admin_base_layout" /}
+
+{block name="content"}
+<div id="page-loader"></div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="block">
+            <div class="block-content tab-content">
+                <div class="row items-push js-gallery-advanced">
+<div class="col-sm-3 col-md-3">
+    <div class="block">
+        <div class="block-header bg-gray-lighter">
+            <h3 class="block-title">第一步：输入姓名</h3>
+        </div>
+        <div class="block-content">
+            <form class="form-horizontal" action="" method="get">
+                <div class="form-material form-material-primary input-group remove-margin-t remove-margin-b">
+                    <input class="form-control" type="text" name="name" placeholder="请准确输入辅导员姓名">
+                    <span class="input-group-addon search-submit" type="submit"><i class="si si-magnifier"></i></span>
+                </div>
+            </form>
+        </div>
+        {notempty name="name"}
+        <div class="block-content">
+            <div class="alert {present name='face_num'}alert-success{else/}alert-warning{/present} alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <p>
+                    <i class="fa fa-check"></i> 
+                    参赛者：<span class="alert-link" >{$name}</span>
+                    
+                </p>
+                {present name="face_num"}
+                    <p>已扫描照片：{$face_num}张</p>
+                {else /}
+                    <p>照片检测失败，请检查姓名是否输入正确，或改姓名下有足够数量的照片</p>
+                {/present}
+                
+            </div>
+        </div>
+        {/notempty}
+    </div>
+    
+
+    
+</div>
+{notempty name="name"}                    
+<div class="col-sm-6 col-md-6">
+    <div class="block">
+        <div class="block-header bg-gray-lighter">
+            <h3 class="block-title">第二步：随机抽取</h3>
+        </div>
+        <div class="block-content">
+            <div class="bg-image" style="">
+                <div class="bg-black-op">
+                    <div class="block block-themed block-transparent">
+                        <div class="block-header">
+                            <h3 class="block-title text-center">辅导员职业能力大赛</h3>
+                        </div>
+                        <div class="block-content block-content-full text-center">
+                            <div class="push">
+                                <img class="img-avatar img-avatar96 img-avatar-thumb" src="__ADMIN_IMG__/avatar.jpg" alt="">
+                            </div>
+                            <h3 class="h1 font-w300 text-white">我认我生</h3>
+                        </div>
+                        <div class="block-content block-content-full text-center">
+                            <a class="btn btn-primary btn-rounded start-roll" href="javascript:void(0)">
+                                <i class="fa fa-fw fa-plus"></i> 开始抽取
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>                
+</div>
+<div class="col-sm-3 col-md-3">
+    <div class="block examboard block-transparent pull-r-l" style="display:none;">
+        <div class="block-header bg-gray-lighter">
+            <h3 class="block-title">第三步：答题</h3>
+        </div>
+        <div class="block-content">
+            <ul class="nav-users push">
+                {volist name="face" id="data" key="k"}
+                <li>
+                    <a data-toggle="modal" data-target="#modal-normal{$k}">
+                        <img class="img-avatar" src="../../../{$data.src}" alt="">
+                        <i class="fa fa-circle text-success"></i>第{$k}位随机抽取学生
+                        <div class="font-w400 text-muted"><small>点击查看大图</small></div>
+                    </a>
+                </li>
+                <!-- modal -->
+                <div class="modal" id="modal-normal{$k}" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content show-face">
+                            <div class="block block-themed block-transparent remove-margin-b">
+                                <div class="block-header bg-primary-dark">
+                                    <ul class="block-options">
+                                        <li>
+                                            <button data-dismiss="modal" type="button"><i class="si si-close"></i></button>
+                                        </li>
+                                    </ul>
+                                    <h3 class="block-title hidden">{$data.title}</h3>
+                                </div>
+                                <div class="block-content" >
+                                    <img class="img-responsive" src="../../../{$data.src}" alt="">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-sm btn-default" type="button" data-dismiss="modal">关闭</button>
+                                <button class="btn btn-sm btn-primary check-answer"><i class="fa fa-check"></i> 答案 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </ul>
+        </div>
+    </div>  
+</div>
+{/notempty}
+    </div>
+</div>
+
+
+{/block}
+
+{block name="script"}
+<script src="__ADMIN_JS__/core/jquery.countTo.min.js"></script>
+<script type="text/javascript">
+    var face = {$all_face};
+    var num = 0;
+    var runing = true;
+</script>
+<script>
+    jQuery(function () {
+        //显示sidebar sidebar-l side-scroll header-navbar-fixed sidebar-o
+        //隐藏sidebar sidebar-l side-scroll header-navbar-fixed
+        App.initHelpers(['appear-countTo']);
+
+        $('#page-container').removeClass('sidebar-o');
+        $('.breadcrumb').parents('.content').hide();
+
+        $('.check-answer').click(function(){
+            $(this).parents(".show-face").find('h3').removeClass('hidden');
+            swal($(this).parents(".show-face").find('h3').text());
+        });
+        $('.bg-image').css('background-image','url("../../../'+face[0].src+'")');
+
+        $.each(face,function(i,v){    
+            new Image().src = '../../../'+face[i].src; 
+            console.log('已加载：'+face[i].title); 
+        });
+
+        $('.start-roll').click(function(){
+            $(this).text('自动抽取中').removeClass('btn-primary').addClass('btn-warning');
+            getFace();
+            $(this).click(function(){
+                console.log('stop!!!====>');
+                stop();
+            });
+        });
+    });
+    var pcount = face.length-1;//参加人数
+    var t = 0;
+    function getFace(){
+        num = Math.floor(Math.random() * pcount);
+        $('.bg-image').css('background-image','url("../../../'+face[num].src+'")');
+        t = setTimeout(getFace, 100);
+        if(t >= 100){
+            stop();
+            $('.bg-image').css('background-image','');
+            $('.start-roll').text('抽取完毕，请点击按钮答题').addClass('disabled');
+            $('.examboard').toggle(1000);
+        }
+        console.log(t);
+        // console.log(face[num].src);
+    }
+    // 停止跳动
+    function stop() {
+        pcount = face.length-1;
+        // clearInterval(t);
+        clearTimeout(t);
+        t = 0;
+
+        console.log(pcount);
+    }
+</script>
+{/block}

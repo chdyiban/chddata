@@ -1,0 +1,10 @@
+.idea
+.user.ini
+composer.lock
+/runtime/
+/.settings/
+/composer.lock
+/.buildpath
+/.project
+*.log
+/application/database.php
