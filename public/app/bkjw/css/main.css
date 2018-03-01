@@ -1,0 +1,198 @@
+html,
+body {
+	background-color: #FAFAFA;
+	height: 100%;
+	color: #333333;
+}
+iframe {
+	border: none;
+}
+
+/*课程表开始*/
+
+.schedule-hd {
+	border-bottom: 1px solid #DDDDDD;
+}
+
+.schedule-bd {
+	/*height: 100%;*/
+}
+
+.flex-vtc {
+	flex-direction: column;
+}
+
+.cls-time {
+	width: 2rem;
+	border-right: 1px solid #DDDDDD;
+}
+
+.cls-time>div,
+.cls-detail>div {
+	line-height: 3rem;
+	height: 3rem;
+	border-bottom: 1px solid #DDDDDD;
+	text-align: center;
+	color: #999999;
+	box-sizing: border-box;
+}
+
+.cls-detail>div {
+	border-bottom-color: #eeeeee;
+	line-height: 1.5em;
+}
+
+div.x1,
+div.x2,
+div.x3 {
+	border-radius: .3rem;
+	border: none;
+	color: #fefefe;
+}
+
+div.x2 {
+	height: 6rem;
+}
+
+.blue {
+	background-color: #007AFF;
+	box-shadow: 0px 1px 5px 0px rgba(0, 122, 255, .5);
+}
+
+.orange {
+	background-color: #FF6600;
+	box-shadow: 0px 1px 5px 0px rgba(255, 102, 0, .5);
+}
+
+
+/*课程表结束*/
+
+
+/*查询成绩*/
+
+#pd .weui-form-preview__hd>.weui-form-preview__label {
+	color: #1aad19;
+}
+
+#pd .weui-form-preview__item .weui-form-preview__label,
+#pd .weui-form-preview__item .weui-form-preview__value {
+	font-size: 1.2em;
+}
+
+#pd em.weui-form-preview__value {
+	color: #e64340;
+	padding-right: 4px;
+}
+
+#pd em.weui-form-preview__value.angleDown:after {
+	transform: rotate(135deg);
+}
+
+#pd em.weui-form-preview__value:after {
+	content: " ";
+	display: inline-block;
+	box-sizing: border-box;
+	height: 6px;
+	width: 6px;
+	border-width: 2px 2px 0 0;
+	border-color: #c8c8cd;
+	border-style: solid;
+	-webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	transform-style: flat;
+	transition: transform .3s ease-in-out, left .3s ease-in-out, top .3s ease-in-out;
+	position: absolute;
+	top: 50%;
+	margin-top: -4px;
+	right: 8px;
+}
+
+.title {
+	text-align: center;
+	font-size: 18px;
+	color: #3cc51f;
+	font-weight: 400;
+	padding: .5em 0;
+}
+
+#ph {
+	font-size: 15px;
+	font-weight: 400;
+	flex: auto;
+	text-align: right;
+}
+
+header.weui-panel>.weui-panel__hd {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	background-color: #1AAD19;
+	color: #EEEEEE;
+}
+
+.avatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	margin-right: .3em;
+}
+
+.psnInfoWrap {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 10px 15px;
+	box-sizing: border-box;
+}
+
+.psnInfoWrap>div {
+	width: 50%;
+	min-width: 50%;
+	display: flex;
+}
+
+.psnInfoWrap>div>label,
+.psnInfoWrap>div>span {
+	font-size: 13px;
+}
+
+.psnInfoWrap>div>span {
+	flex: auto;
+}
+
+.psnInfo:after {
+	content: " ";
+	display: inline-block;
+	box-sizing: border-box;
+	height: 6px;
+	width: 6px;
+	border-width: 2px 2px 0 0;
+	border-color: #c8c8cd;
+	border-style: solid;
+	-webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	transform-style: flat;
+	transition: transform .3s ease-in-out, left .3s ease-in-out, top .3s ease-in-out;
+	position: absolute;
+	top: 50%;
+	margin-top: -2px;
+	margin-left: 2px;
+}
+
+.psnInfo.angleDown:after {
+	transform: rotate(135deg);
+}
+/*门户信息绑定*/
+.logo {
+	background-color: #1aad19;
+	text-align: left;
+	padding: 1em;
+	height: 2rem;
+}
+
+.logo>img {
+	max-width: 100%;
+	height: 100%;
+}
+.weui-agree.help {
+	text-align: right;
+}

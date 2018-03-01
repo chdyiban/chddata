@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>运动会报名</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<link rel="stylesheet" href="lib/weui.min.css">
+		<link rel="stylesheet" href="css/jquery-weui.min.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css" />
+	</head>
+
+	<body ontouchstart>
+		<form id="mainForm">
+			<div class="weui-cells__title">
+				欢迎来到长安大学2018年春季运动会报名界面
+			</div>
+			<div class="weui-cells">
+				<div class="weui-cell">
+					<div class="weui-cell__hd">
+						<label for="" class="weui-label">基本信息</label>
+					</div>
+					<div class="weui-cell__bd">
+						<input class="weui-input" type="text" name="name" id="sp-name" value="" placeholder="请输入姓名" required="required" />
+					</div>
+				</div>
+				<div class="weui-cell">
+					<div class="weui-cell__hd">
+						<label class="weui-label">学号信息</label>
+					</div>
+					<div class="weui-cell__bd">
+						<input class="weui-input" name="stu" id="sp-stu" placeholder="请输入学号" required="required">
+					</div>
+				</div>
+				<div class="weui-cell">
+					<div class="weui-cell__hd"><label for="" class="weui-label">手机号码</label></div>
+					<div class="weui-cell__bd">
+						<input class="weui-input" name="tel" id="sp-tel" type="tel" pattern="[0-9]*" placeholder="请输入手机号" required="required">
+					</div>
+				</div>
+			</div>
+			<div class="weui-btn-area btn-m-area">
+				<a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_default" id="eventsPlus">添加项目+</a>
+			</div>
+			<div class="weui-btn-area">
+				<input class="weui-btn weui-btn_primary" type="submit" value="提交" />
+			</div>
+		</form>
+		<div class="weui-footer copyright">
+			<p class="weui-footer__text">如有疑问请咨询易班客服QQ群467498640 </p>
+			<p class="weui-footer__text">(c) Copyright 2018 长安大学易班工作站. All Rights Reserved. </p>
+		</div>
+		<script src="lib/jquery.min.js"></script>
+		<script src="js/url.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/fastclick.js"></script>
+		<script>
+			$(function() {
+				FastClick.attach(document.body);
+			});
+		</script>
+		<script src="js/jquery-weui.min.js"></script>
+		<script src="js/index.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var APP_ID = "1d7d05c8cabf1668"; //应用id
+			var DEBUG_BASE_URL = "http://yiban.s1.natapp.cc/dolphinphp/yiban/sports/";
+			var DEBUG_APP_URL = "http://yiban.s1.natapp.cc/dolphinphp/app/yundonghui/";
+			var PRODU_BASE_URL = "http://www.chddata.com/index.php/yiban/sports/";
+			var INIT_URL = PRODU_BASE_URL + "init?appid=" + APP_ID + "&verify_request=";
+			var OAUTH_URL = "https://openapi.yiban.cn/oauth/authorize?client_id=" + APP_ID + "&redirect_uri=http://f.yiban.cn/iapp195437&state=ff242";
+			var SUBMIT_URL = PRODU_BASE_URL + "submit?appid=" + APP_ID + "&verify_request=";
+			var DETAIL_URL = PRODU_BASE_URL + "detail.html";
+
+			var SPORTS_LIST_JSON = ''; 
+
+			var groups = 0;
+			$(function() {
+				//验证
+				if(verify() == undefined || "" || false) {
+					location.assign(OAUTH_URL);
+					return;
+				} else {
+					//初始化
+					initinfo();
+				}
+
+				$(document).on("change", ".eventsType", function(e) {
+					getEvents($(this).val(), $(this).data("group"));
+				});
+				$(document).on("change", ".eventsName", function(e) {
+					var f = eventsNameVerify();
+					if(f == true){
+						getEventsDetail($(this).val(), $(this).data("group"));
+					}else{		
+						$.toptip("同学，你选择的项目重复了哦！", "error");				
+					}
+				});
+				$(document).on("click", ".btn-delete", function(e) {
+					deleteEvent(this, groups);
+				});
+				$(document).on("submit", "#mainForm", function(e) {
+					e.stopPropagation();
+					e.preventDefault();
+					var f = eventsNameVerify();
+					if(f == true){			
+						var data = $(this).serializeArray();
+						$.ajax({
+							type: "post",
+							url: SUBMIT_URL + vcode,
+							async: true,
+							data: {
+								"formarray": data,
+							},
+							beforeSend: function(b) {
+								$.showLoading();
+							},
+							complete: function(xhr, st) {
+								$.hideLoading();
+							},
+							success: function(d) {
+								window.localStorage.setItem("resubmit", "false");
+								$.toptip(d.info);
+								initinfo();
+							},
+							error: function(e) {
+								console.log(e);
+								$.toptip(JSON.stringify(e), "error");
+							}
+						});
+					}else{		
+						$.toptip("同学，你选择的项目重复了哦！", "error");				
+					}
+				})
+				$(".btn-m-area").on("click", function(e) {
+					groups++;
+					createGroup(groups, $(this));
+				})
+			});
+
+			/*
+			 * 初始化信息
+			 */
+			function initinfo() {
+				$.ajax({
+					type: "get",
+					url: INIT_URL + vcode,
+					async: true,
+					cache: false,
+					success: function(data) {
+						if(data.status == "error") {
+							$.toptip(data.info, "error");
+						} else if(data.status == "redirect") {
+							$.toptip(data.info, "warning");
+							location.assign(OAUTH_URL);
+						} else {
+							SPORTS_LIST_JSON = (data.personal.sex === '女')? 'female.json': 'male.json'; 
+							window.localStorage.setItem("sportListJson", SPORTS_LIST_JSON);
+
+							var baseInfo = data.personal.yb_realname + "," + data.personal.sex;
+							var stuInfo = data.personal.stu_id + " (班级号:" + data.personal.class_id + ")";
+
+							$("#sp-name").val(baseInfo).attr("readonly",function(){
+								if (data.personal.yb_realname) {
+									return "readonly";
+								}
+							});
+							$("#sp-stu").val(stuInfo).attr("readonly",function(){
+								if (data.personal.stu_id) {
+									return "readonly";
+								}
+							});
+							$("#sp-tel").val(data.personal.mobile);
+							//如果['sports']['status'] == true,即已报名，跳转到报名详情页面，!==true则生成新下拉菜单
+							if (data.sports.status === true) {
+								//getItem("resubmit")，false——不需要修改信息，true——需要修改信息					
+								if (window.localStorage.getItem("resubmit") === "true") {
+									window.localStorage.setItem("resubmit", "false");
+									$.each(data.sports.events, function(i, n) {
+										groups++;
+										createGroup(groups, $(".btn-m-area"),n);
+									});
+								} else{
+									window.localStorage.setItem("signData", JSON.stringify(data));
+									location.assign("detail.html");
+								}
+							} else{
+								for (var i = 0;i<2;i++) {
+									$(".btn-m-area").trigger("click");									
+								}
+							}
+						}
+					},
+					error: function(e) {
+						console.log(e);
+						$.toptip(JSON.stringify(e), "error");
+					}
+				});
+			}
+			/*
+			 * 验证用户授权
+			 */
+			function verify() {
+				url = new LG.URL();
+				vcode = url.get("verify_request");
+				return vcode;
+			}
+		</script>
+		<script>
+			var _hmt = _hmt || [];
+			(function() {
+				var hm = document.createElement("script");
+				hm.src = "https://hm.baidu.com/hm.js?25d014ea1671a3485b7c9109baf83f03";
+				var s = document.getElementsByTagName("script")[0];
+				s.parentNode.insertBefore(hm, s);
+			})();
+		</script>
+	</body>
+
+</html>

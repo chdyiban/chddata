@@ -1,0 +1,292 @@
+<div class="weui-panel map" id="map">
+</div>
+<div class="avatarSign" id="avatarSign">
+	<div>
+		<img src="img/default_avatar_128_128.jpg" id="avatarSignImg" alt="avatar" />
+		<span id="avatarSignName">jelly</span>
+	</div>
+</div>
+<div class="weui-panel weui-panel_access" id="mission">
+	<div class="weui-panel__hd">当前任务</div>
+</div>
+<div class="weui-panel weui-panel_access">
+	<div class="weui-panel__hd">通知</div>
+	<div class="weui-panel__bd" id="notice">
+	</div>
+</div>
+<div class="weui-cells weui-cells_form" id="sms" style="display: none;">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">家长手机</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" name="smsTel" id="tel" type="smsTel" disabled="disabled" value="13087571262">
+		</div>
+	</div>
+	<div class="weui-cell weui-cell_vcode">
+		<div class="weui-cell__hd">
+			<label class="weui-label">短信验证码</label>
+		</div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" name="smsVCode" id="smsVCode" type="text" placeholder="请输入验证码">
+		</div>
+		<div class="weui-cell__ft">
+			<button class="weui-vcode-btn">获取验证码</button>
+		</div>
+	</div>
+</div>
+<div class="content-pd">
+	<a href="javascript:;" class="weui-btn weui-btn_primary" id="attend">签到</a>
+</div>
+<script src="js/yb_h5.js?v=001" type="text/javascript" charset="utf-8" id="ybH5"></script>
+<script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.2&key=c8e57403412eb33b47795d1bd123100e&callback=init"></script>
+<script type="text/javascript">
+	var f = 0; //定位标记，0：普通定位，1：签到
+	var map; //地图对象
+	var polygon; //地图多边形对象
+	var marker; //地图标记点对象
+	window.init = function() {
+		map = new AMap.Map('map', {
+			resizeEnable: true,
+			zoom: 13
+		});
+		map.plugin(["AMap.ToolBar", "AMap.Scale", "AMap.Geolocation"], function() {
+			map.addControl(new AMap.ToolBar());
+			map.addControl(new AMap.Scale());
+			geolocation = new AMap.Geolocation({
+				enableHighAccuracy: true, //是否使用高精度定位，默认:true
+				timeout: 10000, //超过10秒后停止定位，默认：无穷大
+				maximumAge: 0, //定位结果缓存0毫秒，默认：0
+				convert: true, //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
+				showButton: true, //显示定位按钮，默认：true
+				buttonPosition: 'LB', //定位按钮停靠位置，默认：'LB'，左下角
+				buttonOffset: new AMap.Pixel(10, 50), //定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+				showMarker: true, //定位成功后在定位到的位置显示点标记，默认：true
+				showCircle: true, //定位成功后用圆圈表示定位精度范围，默认：true
+				panToLocation: true, //定位成功后将定位到的位置作为地图中心点，默认：true
+				zoomToAccuracy: true //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+			});
+			map.addControl(geolocation);
+			$(".amap-geolocation-con").css("z-index", "9");
+			//返回定位信息
+			AMap.event.addListener(geolocation, 'complete', function(data) {
+				var pos = {
+					"longitude": data.position.L,
+					"latitude": data.position.N
+				}
+				$("#attend").data("ongeo", false);
+				yibanhtml5location(JSON.stringify(pos));
+			});
+			//返回定位出错信息
+			AMap.event.addListener(geolocation, 'error', function(data) {
+				$("#attend").data("ongeo", false).removeClass("weui-btn_loading").text("重新签到");
+				if(data.info == "NOT_SUPPORTED") {
+					$.alert("请更换浏览器并请重试。", "当前浏览器不支持定位功能 !");
+				} else {
+					switch(data.message) {
+						case "Get ipLocation failed.":
+							$.alert("IP精确定位失败。", "定位失败！请重试。");
+							break;
+						case "sdk定位失败.":
+							$.alert("请检查sdk的key是否设置好，以及webview的定位权限及应用和系统的定位权限是否开启。", "定位失败！请重试。");
+							break;
+						case "Browser not Support html5 geolocation.":
+							$.alert("请更换浏览器并请重试。", "浏览器不支持原生定位接口!");
+							break;
+						case "Geolocation permission denied.":
+							$.alert("设备和浏览器的定位权限可能被关闭了，或者浏览器禁止了非安全域的定位请求，请检查。", "定位失败！请重试。");
+							break;
+						case "Get geolocation time out.":
+							$.alert("浏览器定位超时。", "定位失败！请重试。");
+							break;
+						case "Get geolocation failed.":
+							$.alert("定位失败。", "定位失败！请重试。");
+							break;
+						case "Get geolocation time out.Get ipLocation failed.":
+							$.toptip("尝试易班定位...", "warning");
+							gethtml5location_fun();
+							break;
+						default:
+							$.alert("定位失败。", "定位失败！请重试。");
+							break;
+					}
+				}
+			});
+			geolocation.getCurrentPosition();
+			$.toptip('正在定位...', 'warning');
+			$("#attend").data("ongeo", true);
+		});
+		//绘制区域:长安大学渭水校区
+		var path = [
+			[108.89563, 34.371814],
+			[108.906509, 34.375055],
+			[108.909282, 34.37575],
+			[108.911959, 34.376335],
+			[108.914593, 34.370145],
+			[108.89806, 34.365987],
+			[108.897126, 34.367661],
+			[108.897126, 34.367665],
+			[108.8966, 34.368799],
+			[108.896348, 34.369397],
+			[108.896252, 34.369676],
+			[108.8963, 34.36972],
+			[108.896386, 34.369755]
+		];
+		polygon = new AMap.Polygon({
+			map: map,
+			path: path,
+			strokeColor: "#95a0ff", //线颜色
+			strokeOpacity: 1, //线透明度
+			strokeWeight: 1.5, //线宽
+			fillColor: "#65b5fb", //填充色
+			fillOpacity: 0.15 //填充透明度
+		});
+		marker = new AMap.Marker({
+			animation: "AMAP_ANIMATION_DROP"
+		});
+	}
+	$(function() {
+		//设置首页信息
+		setIndexInfo();
+		//签到
+		$("#attend").on("click", function() {
+			if($(this).hasClass("weui-btn_disabled") || $(this).hasClass("weui-btn_loading")) {
+				return;
+			}
+			if($(this).data("ongeo")) {
+				$.toptip('定位中，请稍候', 'warning');
+				return;
+			}
+			f = 1;
+			marker.setMap(null);
+			geolocation.getCurrentPosition();
+			$.toptip('正在定位...', 'warning');
+			$(this).addClass("weui-btn_loading").text("正在签到……");
+		});
+		//通知列表绑定点击事件
+		$("#notice").children("a").on("click", function(e) {
+			$(".noticeDetail h1.title").text($(this).find(".weui-media-box__title").text());
+			$(".noticeDetail .modal-content").children("pre").html($(this).find(".weui-media-box__desc").text());
+			$(".noticeDetail").popup();
+		});
+		//头像点击事件
+		$("#avatarSign").on("click", function(e) {
+			$(".weui-tabbar__item").eq(3).trigger("click");
+		});
+
+		//获取验证码
+		$("button.weui-vcode-btn").on("click", function(e) {
+			if($(this).data("load") == "true") {
+				return;
+			}
+			var smsBtn = $("button.weui-vcode-btn");
+			$.ajax({
+				type: "post",
+				url: "",
+				async: true,
+				beforeSend: function(e) {
+					smsBtn.text("正在获取...").data("load", "true");
+				},
+				success: function(d) {
+					var countdown = 180;
+					smsBtn.text(countdown + "s...");
+					var timer = setInterval(function(e) {
+						countdown--;
+						smsBtn.text(countdown + "s...");
+						if(countdown == 0) {
+							clearInterval(timer);
+							smsBtn.text("重新获取验证码").data("load", "false");
+						}
+					}, 1000);
+				},
+				error: function(e) {
+					$.toast(JSON.stringify(e), "forbidden");
+					smsBtn.text("重新获取验证码").data("load", "false");
+				}
+			});
+		})
+	});
+	/*
+	 * 设置首页信息
+	 */
+	function setIndexInfo() {
+		//任务签到状态
+		if(publicInfo.task_status == 0) {
+			$("#mission").children(".weui-panel__hd").text(publicInfo.msg);
+		} else {
+			var bd = $("<div></div>").addClass("weui-panel__bd nosign-history");
+			var box = $("<div></div>").addClass("weui-media-box weui-media-box_appmsg");
+			var boxBd = $("<div></div>").addClass("weui-media-box__bd");
+			var boxTitle = $("<h4></h4>").addClass("weui-media-box__title");
+			boxTitle.text(publicInfo.task_name);
+			var boxDesc = $("<p></p>").addClass("weui-media-box__desc").text("~");
+			boxDesc.prepend("<span>" + publicInfo.start_time + "</span>").append("<span>" + publicInfo.end_time + "</span>");
+			var subscript = $("<div></div>").addClass("subscript").attr("id", "taskStatus");
+			subscript.text(function() {
+				if(personalInfo.sign_status == 1) {
+					return "已签";
+				}
+				if(personalInfo.sign_status == 0) {
+					return "未签";
+				}
+			}).addClass(function() {
+				if(personalInfo.sign_status == 1) {
+					return "primary";
+				}
+				if(personalInfo.sign_status == 0) {
+					return "warning";
+				}
+			});
+			$("#mission").append(bd.append(box.append(boxBd.append(boxTitle, boxDesc), subscript)));
+		}
+		//个人签到状态
+		$("#attend").text(function() {
+			switch(personalInfo.sign_status) {
+				case 1:
+					return "已签";
+					break;
+				case 0:
+					return "签到";
+					break;
+				case -1:
+					return "当前无签到任务";
+					break;
+				default:
+					break;
+			}
+		}).addClass(function() {
+			switch(personalInfo.sign_status) {
+				case 1:
+					return "";
+					break;
+				case 0:
+					return "";
+					break;
+				case -1:
+					return "weui-btn_disabled";
+					break;
+				default:
+					break;
+			}
+		});
+		$("#avatarSignImg").attr("src", personalInfo.head_img);
+		$("#avatarSignName").text(personalInfo.yb_realname || "username");
+		//生成消息列表
+		$.each(publicInfo.notice, function(i, n) {
+			var box = $("<a href='javascript:;'></a>").addClass("weui-media-box weui-media-box_appmsg");
+			var box_bd = $("<div></div>").addClass("weui-media-box__bd");
+			var box_title = $("<h4></h4>").addClass("weui-media-box__title").text(n.title);
+			var box_desc = $("<p></p>").addClass("weui-media-box__desc").text(n.notice);
+			var box_info = $("<p></p>").addClass("weui-media-box__info").text(n.timestamp);
+			$("#notice").append(box.append(box_bd.append(box_title, box_desc, box_info)));
+		});
+
+		//短信验证
+		$("#smsTel").val(publicInfo.tel);
+		if(publicInfo.sms_verify == 1) {
+			$("#sms").show();
+			$("#attend").addClass("weui-btn_disabled");
+		} else {
+			$("#sms").hide();
+			$("#attend").removeClass("weui-btn_disabled");
+		}
+	}
+</script>

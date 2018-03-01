@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>运动会报名信息</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<link rel="stylesheet" href="lib/weui.min.css">
+		<link rel="stylesheet" href="css/jquery-weui.min.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css" />
+	</head>
+
+	<body ontouchstart>
+		<div class="weui-cells__title">
+			您已完成报名，详细情况如下，如有错误，请点击下方返回修改。
+		</div>
+		<div class="weui-cells">
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					姓名
+				</div>
+				<div class="weui-cell__ft" id="name"></div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					性別
+				</div>
+				<div class="weui-cell__ft" id="sex"></div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					班号
+				</div>
+				<div class="weui-cell__ft" id="class"></div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					学号
+				</div>
+				<div class="weui-cell__ft" id="stu_id"></div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					电话
+				</div>
+				<div class="weui-cell__ft" id="tel"></div>
+			</div>
+		</div>
+		<div class="weui-btn-area">
+			<a href="javascript:;" class="resubmit weui-btn weui-btn_primary weui-btn_warn">修改</a>
+		</div>
+		<div class="weui-footer copyright">
+			<p class="weui-footer__text">(c) Copyright 2018 长安大学易班工作站. All Rights Reserved. </p>
+		</div>
+		<script src="lib/jquery.min.js"></script>
+		<script src="js/url.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/fastclick.js"></script>
+		<script>
+			$(function() {
+				FastClick.attach(document.body);
+			});
+		</script>
+		<script src="js/jquery-weui.min.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				var data = JSON.parse(window.localStorage.getItem("signData"));		
+				//个人信息
+				var personal = data.personal;
+				$("#name").text(personal.yb_realname);
+				$("#sex").text(personal.sex);
+				$("#class").text(personal.class_id);
+				$("#stu_id").text(personal.stu_id);
+				$("#tel").text(personal.mobile);
+				var sports = data.sports;
+				//查询json
+				$.ajax({
+					type: "get",
+					url: window.localStorage.getItem("sportListJson"),
+					async: true,
+					success: function(d) {
+						$.each(sports.events, function(i,n) {
+							var type;
+							var events;
+							$.each(d.type, function(j,m) {
+								if(m.id == n.type_id){
+									type = m.typeName;
+								}
+							});
+							$.each(d.events, function(k,l){
+								if(l.id == n.event_id){
+									events = l.eventsName;
+								}
+							});
+							createGroup(i+1,type,events);							
+						});
+					},
+					error: function(e) {
+						console.log(e)
+					}
+				});
+				$('.resubmit').bind('click',function(){
+					window.localStorage.setItem("resubmit","true");
+					location.assign(document.referrer);
+				});
+			})
+			/*
+			 * 创建项目组
+			 * jellykuma	2018.02.07
+			 * @i:当前项目组索引
+			 * @btn:【添加】按钮对象
+			 */
+			function createGroup(i,type,eventsName) {
+				//标题
+				var title = $("<div/>", {
+					"class": "weui-cells__title",
+					"text": "报名项目" + i
+				});
+				//包裹块
+				var cell = $("<div/>", {
+					"class": "weui-cells events",
+				});
+				$("<div/>",{
+					"class":"weui-cell"
+				}).append($("<div/>",{
+					"class": "weui-cell__bd",
+					"text": "类型"
+				}),$("<div/>",{
+					"class": "weui-cell__bd weui-cell__ft",
+					"text": type
+				})).appendTo(cell);
+				$("<div/>",{
+					"class":"weui-cell"
+				}).append($("<div/>",{
+					"class": "weui-cell__bd",
+					"text": "名称"
+				}),$("<div/>",{
+					"class": "weui-cell__bd weui-cell__ft",
+					"text": eventsName
+				})).appendTo(cell);
+				$(".weui-btn-area").before(title, cell);
+			}
+		</script>
+		<script>
+			var _hmt = _hmt || [];
+			(function() {
+				var hm = document.createElement("script");
+				hm.src = "https://hm.baidu.com/hm.js?25d014ea1671a3485b7c9109baf83f03";
+				var s = document.getElementsByTagName("script")[0];
+				s.parentNode.insertBefore(hm, s);
+			})();
+		</script>
+	</body>
+
+</html>

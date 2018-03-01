@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>晚点名</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+		<link rel="stylesheet" href="lib/weui.min.css">
+		<link rel="stylesheet" href="css/jquery-weui.min.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css" />
+		<link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_517353_xcyc5dtc3rqkt9.css" />
+	</head>
+
+	<body ontouchstart>
+		<div class="weui-tab">
+			<div class="weui-tab__bd">
+				<div id="tab1" class="weui-tab__bd-item">
+					<div class="weui-tab__panel"></div>
+				</div>
+				<div id="tab2" class="weui-tab__bd-item">
+					<div class="weui-tab__panel"></div>
+				</div>
+				<div id="tab3" class="weui-tab__bd-item">
+					<div class="weui-tab__panel"></div>
+				</div>
+				<div id="tab4" class="weui-tab__bd-item">
+					<div class="weui-tab__panel"></div>
+				</div>
+			</div>
+			<div class="weui-popup__container noticeDetail">
+				<div class="weui-popup__overlay"></div>
+				<div class="weui-popup__modal">
+					<div class="toolbar">
+						<div class="toolbar-inner">
+							<a href="javascript:;" class="picker-button close-popup">关闭</a>
+							<h1 class="title">用户文档</h1>
+						</div>
+					</div>
+					<div class="modal-content">
+						<pre class="noticeContent">				
+						</pre>
+					</div>
+				</div>
+			</div>
+			<div class="weui-tabbar">
+				<a href="#tab1" class="weui-tabbar__item" data-url="sign.html">
+					<i class="weui-tabbar__icon iconfont icon-map"></i>
+					<p class="weui-tabbar__label">签到</p>
+				</a>
+				<a href="#tab2" class="weui-tabbar__item" data-url="data.html">
+					<i class="weui-tabbar__icon iconfont icon-jifen"></i>
+					<p class="weui-tabbar__label">数据</p>
+				</a>
+				<a href="#tab3" class="weui-tabbar__item" data-url="notice.html">
+					<i class="weui-tabbar__icon iconfont icon-email"></i>
+					<p class="weui-tabbar__label">通知</p>
+				</a>
+				<a href="#tab4" class="weui-tabbar__item" data-url="me.html" id="me">
+					<i class="weui-tabbar__icon iconfont icon-account"></i>
+					<p class="weui-tabbar__label">我</p>
+				</a>
+			</div>
+		</div>
+	</body>
+	<script src="lib/jquery.min.js"></script>
+	<script src="js/url.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/fastclick.js"></script>
+	<script>
+		$(function() {
+			FastClick.attach(document.body);
+		});
+	</script>
+	<script src="js/jquery-weui.min.js"></script>
+	<script type="text/javascript">
+		var APP_ID = "d53201c6a67e6c8a"; //应用id
+		$(function() {
+			//验证
+			if(verify() == undefined || "" || false) {
+				location.assign("https://openapi.yiban.cn/oauth/authorize?client_id=" + APP_ID + "&redirect_uri=http://f.yiban.cn/iapp130591&state=ff241");
+				return;
+			}else {			
+				//初始化
+				initinfo();
+			}
+			//tabbar点击事件
+			$(".weui-tabbar__item").off("click").on("click", function(e) {
+				if($(".weui-popup__container").css("display") == "block"){
+					$.closePopup();
+				}
+				$("#tab" + ($(this).index() + 1)).children(".weui-tab__panel:empty").load($(this).data("url"));
+			});
+		});
+
+		/*
+		 * 初始化信息
+		 */
+		function initinfo() {
+			//返回值
+			//status:"true",
+			//personal:"",//用户信息，包含学院，头像，学号，易班ID，签到状态（0未签，1已签，-1不存在任务）
+			//public:"",//点名ID，开始时间，结束时间，状态，通知列表（json数组）
+			$.ajax({
+				type: "get",
+				url: "http://www.chddata.com/index.php/yiban/sign/init?appid=" + APP_ID + "&verify_request=" + vcode,
+				async: true,
+				cache: false,
+				success: function(data) {
+					if(data.status == "error"){
+						$.toptip(data.info, "error");
+					}else if(data.status == "redirect"){
+						$.toptip(data.info, "warning");
+						location.assign("https://openapi.yiban.cn/oauth/authorize?client_id=" + APP_ID + "&redirect_uri=http://f.yiban.cn/iapp130591&state=ff241");
+					}else{
+						publicInfo = data.public;
+						personalInfo = data.personal;
+						//必须触发click事件，否则的话weui无法给对应的div赋予active类
+						$(".weui-tabbar__item").eq(0).trigger("click");
+					}
+				},
+				error: function(e) {
+					$.toptip(JSON.stringify(e), "error");
+				}
+			});
+		}
+		/*
+		 * 验证用户授权
+		 */
+		function verify() {
+			url = new LG.URL();
+			vcode = url.get("verify_request");
+			return vcode;
+		}
+	</script>
+
+</html>

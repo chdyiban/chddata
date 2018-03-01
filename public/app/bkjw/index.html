@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>成绩</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+		<link rel="stylesheet" href="lib/weui.min.css">
+		<link rel="stylesheet" href="css/jquery-weui.min.css">
+		<link rel="stylesheet" type="text/css" href="css/main.css" />
+		<link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_543026_f01j35lj8zlrf6r.css" />
+	</head>
+
+	<body ontouchstart>
+		<header class="weui-panel">
+			<div class="weui-panel__hd">
+				<img src="img/default_avatar_128_128.jpg" class="avatar" id="head_img" />
+				<span class="psnInfo" id="name"></span>
+				<h1 id="ph">
+					学年学期：<span></span>
+				</h1>
+			</div>
+			<div class="weui-panel__bd psnInfoWrap" style="display: none;">
+				<div>
+					<label class="iconfont icon-icon-xingbie">：</label>
+					<span id="sex"></span>
+				</div>
+				<div>
+					<label class="iconfont icon-bianhao1">：</label>
+					<span id="number"></span>
+				</div>
+				<div>
+					<label class="iconfont icon-seo-marketing-business-bank-banking-building">：</label>
+					<span id="college"></span>
+				</div>
+				<div>
+					<label class="iconfont icon-16pxxueyuan">：</label>
+					<span id="major"></span>
+				</div>
+				<div>
+					<label class="iconfont icon-YLTC_gradeofposition">：</label>
+					<span id="class"></span>
+				</div>
+			</div>
+		</header>
+		<div class="weui-cells__title"><span>课程名称</span><span style="float:right">成绩</span></div>
+		<div id="pd"></div>
+		<div class="weui-footer">
+			<p class="weui-footer__text">(c) Copyright 2018 长安大学易班工作站. All Rights Reserved. </p>
+		</div>
+		<script src="lib/jquery.min.js"></script>
+		<script src="js/url.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/fastclick.js"></script>
+		<script>
+			$(function() {
+				FastClick.attach(document.body);
+			});
+		</script>
+		<script src="js/jquery-weui.min.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				APP_ID = "6e0cbf75e97edd64"; //定义appid
+				//验证
+				if(verify() == false) {
+					location.assign("https://openapi.yiban.cn/oauth/authorize?client_id=" + APP_ID + "&redirect_uri=http://f.yiban.cn/iapp193567&display=html&state=ff241");
+					return;
+				}
+				init(); //信息初始化
+				psnInfoFold(); //折叠个人基本信息
+			});
+
+			/*
+			 * 信息初始化
+			 */
+			function init() {
+				$.ajax({
+					type: "get",
+					url: "http://www.chddata.com/index.php/yiban/bkjw/isBindPortal?appid=" + APP_ID + "&verify_request=" + vcode,
+					async: true,
+					success: function(data) {
+						console.log(data);
+						if(data.status == false) {
+							location.assign("bindPortal.html?verify_request=" + vcode + "&appid=" + APP_ID + "&stu_id=" + data.stu_id);
+						}else if(data.status == "redirect"){
+							$.toptip(data.info, "warning");
+							location.assign("https://openapi.yiban.cn/oauth/authorize?client_id=" + APP_ID + "&redirect_uri=http://f.yiban.cn/iapp193567&display=html&state=ff241");
+						} else {
+							$.ajax({
+								type: "post",
+								url: "http://www.chddata.com/index.php/yiban/bkjw/q?appid=" + APP_ID + "&verify_request=" + vcode,
+								async: true,
+								beforeSend: function(b) {
+									$.showLoading();
+								},
+								success: function(d) {
+									console.log(d);
+									$.hideLoading();
+									$.toast(d.info);
+									//输出个人信息
+									$("#head_img").attr("src", d.data.me.head_img);
+									$("#name").text(d.data.me.name);
+									$("#sex").text(d.data.me.sex);
+									$("#number").text(d.data.me.number);
+									$("#college").text(d.data.me.college);
+									$("#major").text(d.data.me.major);
+									$("#class").text(d.data.me.class);
+									//输出成绩
+									$.each(d.data.score, function(i, n) {
+										var hd = $("<div></div>").addClass("weui-form-preview__hd");
+										var bd = $("<div></div>").addClass("weui-form-preview__bd");
+										$.each(n, function(j, m) {
+											var item = $("<div></div>").addClass("weui-form-preview__item");
+											var label = $("<label></label>").addClass("weui-form-preview__label");
+											if(m.key == "课程名称") {
+												hd.append(label.text(m.val));
+											} else if(m.key == "学年学期") {
+												$("#ph>span").text(m.val);
+											} else {
+												var span = $("<span></span>").addClass("weui-form-preview__value");
+												bd.append(item.append(label.text(m.key), span.text(m.val)));
+												if(m.key == "最终") {
+													var em = $("<em></em>").addClass("weui-form-preview__value");
+													hd.append(em.text(m.val));
+												}
+											}
+										});
+										var wrap = $("<div></div>").addClass("weui-form-preview");
+										$("#pd").append(wrap.append(hd, bd));
+									});
+									previewFold();
+								},
+								error: function(e) {
+									$.toptip(JSON.stringify(e), "error");
+								}
+							});
+						}
+					},
+					error: function(e) {
+						$.toptip("错误！请刷新页面重试。", "error");
+						console.log(e);
+					}
+				});
+			}
+			/*
+			 * 验证用户授权
+			 */
+			function verify() {
+				url = new LG.URL();
+				vcode = url.get("verify_request");
+				if(!vcode) {
+					return false;
+				}
+			}
+			/*
+			 * 成绩列表-手风琴
+			 */
+			function previewFold() {
+				$(".weui-form-preview__bd").hide();
+				$(".weui-form-preview").on("click", function(e) {
+					$(this).children(".weui-form-preview__bd").slideToggle()
+						.prev(".weui-form-preview__hd").find("em.weui-form-preview__value").toggleClass("angleDown")
+						.end().end().end()
+						.siblings(".weui-form-preview").children(".weui-form-preview__bd").slideUp()
+						.prev(".weui-form-preview__hd").find("em.weui-form-preview__value").removeClass("angleDown");
+				})
+			}
+
+			/*
+			 * 个人信息-手风琴
+			 */
+			function psnInfoFold() {
+				$("#name").on("click", function(e) {
+					$(this).toggleClass("angleDown");
+					$(".psnInfoWrap").slideToggle();
+				})
+			}
+		</script>
+		<script>
+			var _hmt = _hmt || [];
+			(function() {
+				var hm = document.createElement("script");
+				hm.src = "https://hm.baidu.com/hm.js?25d014ea1671a3485b7c9109baf83f03";
+				var s = document.getElementsByTagName("script")[0];
+				s.parentNode.insertBefore(hm, s);
+			})();
+		</script>
+	</body>
+
+</html>

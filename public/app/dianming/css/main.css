@@ -1,0 +1,200 @@
+html,
+body {
+	background-color: #FAFAFA;
+	height: 100%;
+}
+
+.content-pd {
+	padding: 20px 15px;
+}
+
+.amap-scalecontrol,
+.amap-logo,
+.amap-copyright,
+.amap-toolbar {
+	z-index: 9;
+}
+
+
+/*签到页*/
+
+.map {
+	height: 10rem;
+	background-color: #EEEEEE;
+	margin-top: 0;
+}
+
+.weui-tabbar__icon.iconfont {
+	line-height: 1.2em;
+}
+
+.weui-tabbar__item.weui-bar__item--on .iconfont {
+	color: #04BE02;
+}
+
+.noticeDetail.popup-bottom .weui-popup__modal {
+	height: 50%;
+}
+
+.noticeDetail .weui-popup__modal {
+	padding-bottom: 50px;
+	box-sizing: border-box;
+}
+
+.noticeContent {
+	padding: 10px 15px;
+	display: inline-block;
+	white-space: pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	word-wrap: break-word;
+	font-family: inherit;
+	line-height: 1.5em;
+}
+
+.avatarSign {
+	position: relative;
+}
+
+.avatarSign>div {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	top: -1.5rem;
+	z-index: 9;
+	right: 2rem;
+}
+
+.avatarSign>div>img {
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px -1px rgba(26, 173, 25, .65), 0 1px 10px 3px rgba(26, 173, 25, .25);
+	background-color: rgb(26, 173, 25);
+}
+
+.avatarSign>div>span {
+	font-size: 13px;
+	color: #1aad19;
+	text-shadow: 0 0 10px rgba(26, 173, 25, .5);
+}
+
+
+/*数据页*/
+
+.datacell {
+	flex: 1;
+	border-right: 1px solid #e5e5e5;
+}
+
+.datacell:last-child {
+	border-right: none;
+}
+
+.datacell>p {
+	text-align: center;
+}
+
+.datacell-title {
+	color: #999999;
+	font-size: 14px;
+}
+
+
+/*通知页*/
+
+.noticeListWrap {
+	margin-top: 0;
+}
+
+.listControl {
+	margin-top: 1.5em;
+}
+
+.prevWrap {
+	text-align: right;
+}
+
+.pageNumWrap {
+	text-align: center;
+	padding: 0 1em;
+}
+
+.pageNum {
+	width: 3em
+}
+
+
+/*我的*/
+
+.myprofile {
+	background-color: #00c000;
+	margin-top: 0;
+}
+
+.avatar>img {
+	border-radius: 50%;
+	width: 100%;
+	border: 1px solid #fafafa;
+	box-sizing: border-box;
+}
+
+.profiles>h4,
+.profiles>h5 {
+	width: 50%;
+	float: left;
+	color: #FFFFFF;
+	font-size: 15px;
+	font-weight: normal;
+}
+
+.profiles>h4 {
+	width: 100%;
+	font-size: 17px;
+	line-height: 2em;
+}
+
+.profiles>h4>span {
+	margin-right: 1em;
+}
+
+.profiles .iconfont {
+	margin-right: .5em;
+}
+
+.nosign-history .weui-media-box {
+	overflow: hidden;
+}
+
+
+/*角标*/
+
+.subscript {
+	position: absolute;
+	top: -0.6em;
+	right: -3.2em;
+	padding: 2em 0 .1em;
+	width: 8em;
+	text-align: center;
+	font-size: 13px;
+	line-height: 1em;
+	transform: rotate(45deg);
+	color: #fafafa;
+}
+
+.subscript.primary {
+	background-color: #1aad19;
+}
+
+.subscript.warning {
+	background-color: #e64340;
+}
+
+
+/*其他*/
+
+.weui-loadmore {
+	display: none;
+}

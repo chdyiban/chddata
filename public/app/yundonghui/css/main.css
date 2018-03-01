@@ -1,0 +1,56 @@
+﻿html,
+body {
+	background-color: #FAFAFA;
+	height: 100%;
+	color: #333333;
+}
+iframe {
+	border: none;
+}
+.copyright {
+	margin-top: 1.8em;
+}
+.copyright .weui-footer__text {
+	padding-bottom: .34em;
+}
+/*首页*/
+.eventsDetail {
+	background-color: #FAFAFA;
+	border: 1px solid #eee;
+	border-radius: 12px;
+	margin: 12px;
+	padding: 12px;
+	font-size: 14px;
+	color: #666;
+	display: none;
+}
+.eventsDetail>div {
+	display: flex;
+	align-items: flex-start;
+	margin-top: .5em;
+}
+.eventsDetail>div:first-child {
+	margin-top: 0;
+}
+.eventsDetail>div>span:last-child {
+	flex:1;
+	padding-left: 1em;
+}
+.btn-m-area {
+	text-align: center;
+}
+.checked-inline {
+	background-color: #EEEEEE;
+	border-radius: .2em;
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	line-height: 1em;
+}
+.newEvent {
+	display: flex;
+    align-items: center;
+}
+.newEvent .weui-btn {
+	margin-right: 0;
+}
