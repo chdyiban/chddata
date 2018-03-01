@@ -80,3 +80,4 @@ class ZBuilder extends Common
         return parent::fetch($template, $vars, $replace, $config);
     }
 }
+
