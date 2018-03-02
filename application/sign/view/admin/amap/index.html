@@ -1,0 +1,62 @@
+{extend name="$_admin_base_layout" /}
+
+{block name="content"}
+<!-- <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/> -->
+<script src="http://webapi.amap.com/maps?v=1.3&key=a586ba58487b2568dea19984762cd352"></script>
+<script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+<hr/>
+<div id="container" style="position: relative;min-height: 450px;"></div>
+<script>
+    var map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: [108.901433,34.369429],
+        zoom: 15
+    });
+
+    var editor={};
+    editor._polygon=(function(){
+        var arr = [ //构建多边形经纬度坐标数组
+        [108.914641,34.370045],
+        [108.911862,34.376695],
+        [108.906454,34.374959],
+        [108.895597,34.371856],
+        [108.889911,34.370169],
+        [108.889975,34.363792]
+        ]
+        return new AMap.Polygon({
+            map: map,
+            path: arr,
+            strokeColor: "#0000ff",
+            strokeOpacity: 0.5,
+            strokeWeight: 2,
+            fillColor: "#f5deb3",
+            fillOpacity: 0.05
+        });
+    })();
+
+    var markers = [
+    {volist name="sign_data" id="vo"}
+    {
+        icon: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_b1.png',
+        position: [{$vo.latitude}, {$vo.longitude}]
+    },
+    {/volist}
+    ]
+    markers.forEach(function(marker) {
+        new AMap.Marker({
+            map: map,
+            icon: marker.icon,
+            position: [marker.position[0], marker.position[1]],
+        });
+    });
+</script>
+{/block}
+
+{block name="script"}
+<script src="__ADMIN_JS__/core/jquery.countTo.min.js"></script>
+<script>
+    jQuery(function () {
+        App.initHelpers(['appear-countTo']);
+    });
+</script>
+{/block}

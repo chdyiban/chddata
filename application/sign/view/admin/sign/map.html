@@ -1,0 +1,116 @@
+{extend name="$_admin_base_layout" /}
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+{block name="content"}
+<div id="container" style="position: relative;min-height: 450px;" class="container"></div>
+
+<script src="http://webapi.amap.com/loca?key=ecf126c3c3aa610b9c4392a55ed94e85"></script>
+<script src="http://a.amap.com/Loca/static/mock/heatmapData.js"></script>
+<script>
+
+
+
+     var heatmapData = [{
+    "lng": 116.191031,
+    "lat": 39.988585,
+    "count": 10
+}, {
+    "lng": 116.389275,
+    "lat": 39.925818,
+    "count": 11
+}, {
+    "lng": 116.287444,
+    "lat": 39.810742,
+    "count": 12
+}, {
+    "lng": 116.481707,
+    "lat": 39.940089,
+    "count": 13
+}, {
+    "lng": 116.410588,
+    "lat": 39.880172,
+    "count": 14
+}, {
+    "lng": 116.394816,
+    "lat": 39.91181,
+    "count": 15
+}, {
+    "lng": 116.416002,
+    "lat": 39.952917,
+    "count": 16
+}, {
+    "lng": 116.39671,
+    "lat": 39.924903,
+    "count": 17
+}, {
+    "lng": 115.180816,
+    "lat": 37.957553,
+    "count": 18
+}, {
+    "lng": 116.49671,
+    "lat": 36.924903,
+    "count": 19
+}, {
+    "lng": 114.39671,
+    "lat": 37.924903,
+    "count": 20
+},{
+    "lng": 116.39671,
+    "lat": 38.924903,
+    "count": 21
+}, {
+    "lng": 123.39671,
+    "lat": 12.924903,
+    "count": 22
+},{
+    "lng": 116.400,
+    "lat": 37.924903,
+    "count": 23
+}];
+
+    var map = Loca.create('container', {
+        features: ['bg', 'road'],
+        center: [116.397475, 39.908668],
+        zoom: 10
+    });
+
+    var layer = Loca.visualLayer({
+        container: map,
+        type: 'heatmap',
+        shape: 'normal'
+    });
+
+    var list = [];
+    var i = -1, length = heatmapData.length;
+    while (++i < length) {
+        var item = heatmapData[i];
+        list.push({
+            coordinate: [item.lng, item.lat],
+            count: item.count
+        })
+    }
+
+    layer.setData(list, {
+        lnglat: 'coordinate',
+        value: 'count'
+    });
+
+    layer.setOptions({
+        style: {
+            radius: 25,
+            opacity: [0, 0.7],
+        },
+        gradient: {
+            0.5: 'blue',
+            0.65: 'rgb(117,211,248)',
+            0.7: 'rgb(0, 255, 0)',
+            0.9: '#ffea00',
+            1.0: 'red'
+        }
+    });
+
+   
+
+    layer.render();
+
+</script>
+{/block}
