@@ -1,15 +1,18 @@
 <?php
-namespace app\sign\admin;
+namespace app\yiban\admin;
 
 use app\admin\controller\Admin;
 use app\common\builder\ZBuilder; // 引入ZBuilder
 use think\Db;
-use app\user\model\Role as RoleModel;
-use app\yiban\model\BaseInfo as BaseModel;
 
 /**
- * 晚点名管理后台
- * @package app\sign\admin
+ * 签到模块后台
+ * @author yongyijiu, rewirte by Yang 2018.3.3
+ * Rewirte Steps:
+ * 1.原sign模块去除无用功能，整体迁移至yiban下
+ * 2.前后台公用方法写入yiban/common.php下
+ * 3.数据库视图重写为tp的视图模型
+ * @package app\yiban\bkjw
  */
 class Sign extends Admin
 {
@@ -17,6 +20,116 @@ class Sign extends Admin
     public function config(){
        return $this->moduleConfig();
     }
+
+
+    /**
+    * 通知列表，原路径sign/admin/notice.php
+    * @author yongyijiu
+    */
+    public function noticeList(){
+
+    	$order = $this->getOrder();
+    	$map = $this->getMap();
+    	$data_list = Db::name('sign_notice')->where($map)->order($order)->paginate();
+        $task = Db::name('sign_task')->select();
+        //得出选项的数组
+        $select_list = array();
+        foreach ($task as $value) {
+            $select_list[$value['id']] = $value['title'];
+        }
+		// 定义新增页面的字段
+		$fields_add = [
+			['text', 'title', '标题', '必填'],
+			['textarea', 'notice', '通知内容', '发布的通知的具体内容'],
+            ['select', 'task_id', '晚点名', '通知发布所针对的晚点名',$select_list],
+            ['radio', 'status', '状态', '', ['禁用', '发布'], 1],	
+        ];
+        //定义编辑页面的字段
+        $fields_edit = [
+    	    ['hidden', 'id'],
+    	    ['text', 'title', '标题', '必填'],
+    	    ['textarea', 'notice', '通知内容', '发布的通知的具体内容']
+	
+    	];
+
+ 		return ZBuilder::make('table')
+ 				->addColumns([
+					['id', 'ID','', '', '', 'text-center'],
+					['title', '通知标题','text.edit', '', '', 'text-center'],
+					['notice', '通知内容', 'text.edit', '', '', 'text-center'],
+					['timestamp', '发布时间'],
+					['task_id', '晚点名事项','callback',function($value){
+        				$title = DB::name('sign_task')->where('id = '.$value)->value('title');
+        				return $title;
+           				}
+           			],
+					['right_button', '操作', 'btn']
+				])
+
+ 				->autoAdd($fields_add, 'sign_notice', '', 'timestamp|Y-m-d', '', true) // 添加新增按钮
+                ->autoEdit($fields_edit, 'sign_notice','','timestamp|Y-m-d') // 添加编辑按钮
+                ->addRightButton('delete') // 添加删除按钮
+                ->addValidate('Config', 'title，notice') // 添加快捷编辑的验证器
+                ->addOrder(['id','timestamp']) // 添加排序
+                ->addFilter(['id','task_id']) // 添加筛选
+                ->addTimeFilter('timestamp') // 添加时间段筛选
+ 				->setRowList($data_list) // 设置表格数据
+ 				->setPageTitle('通知列表')
+ 				->fetch();
+    }
+
+    /**
+    * 任务列表，原路径 sign/admin/task.php
+    * @author yongyijiu
+    * 
+    */
+    public function taskList(){
+
+    	$order = $this->getOrder();
+    	$map = $this->getMap();
+    	$data_list = Db::name('sign_task')->where($map)->order($order)->paginate();
+
+        // 定义新增页面的字段
+        $fields_add = [
+            ['text', 'title', '晚点名标题', '必填'],
+            ['datetime','start_time','开始时间'],
+            ['datetime','end_time','结束时间'],
+            ['radio', 'status', '状态', '', ['禁用', '发布'], 1], 
+            ['hidden','adminid',UID],
+        ];
+
+        // 定义编辑页面的字段
+         $fields_edit = [
+            ['hidden', 'id'],
+            ['text', 'title', '晚点名标题', '必填'],
+            ['datetime','start_time','开始时间'],
+            ['datetime','end_time','结束时间'],
+            ['hidden','adminid',UID],
+            ['hidden','status',1]
+        ];
+
+ 		return ZBuilder::make('table')
+ 				->addColumns([
+				['id', 'ID','', '', '', 'text-center'],
+				['title', '任务标题','text.edit', '', '', 'text-center'],
+				['start_time', '开始时间', 'datetime.edit', '', '', 'text-center'],
+				['end_time', '结束时间', 'datetime.edit', '', '', 'text-center'],
+                ['adminid', '发布者','callback',function($value){
+                	$name = DB::name('admin_user')->where('id = '.$value)->value('nickname');
+                    	return $name;
+                	}
+                ],
+				['right_button', '操作', 'btn']
+			])
+                ->autoAdd($fields_add, 'sign_task','','start_time,end_time') // 添加新增按钮
+                ->autoEdit($fields_edit, 'sign_task','','start_time,end_time') // 添加编辑按钮
+                ->addRightButton('delete') // 添加删除按钮
+                ->addOrder('id') // 添加排序
+ 				->setRowList($data_list) // 设置表格数据
+ 				->setPageTitle('正常任务')
+ 				->fetch();
+    }
+
     //签到信息列表
     public function signList($group = 'tab1'){
 
@@ -24,7 +137,7 @@ class Sign extends Admin
     	$map = $this->getMap();
     	$data_list = Db::name('sign_list')->where($map)->order($order)->paginate();
 
-         $list_tab = [
+        $list_tab = [
             'tab1' => ['title' => '签到信息列表', 'url' => url('signList', ['group' => 'tab1'])],
             'tab2' => ['title' => '热力图统计', 'url' => url('signList', ['group' => 'tab2'])]
         ];
@@ -43,9 +156,10 @@ class Sign extends Admin
                 ['at_school', '位置', '', '', '', 'text-center'],
                 ['timestamp', '签到时间'],
                 ['task_id', '晚点名事项','callback',function($value){
-                $title = DB::name('sign_task')->where('id = '.$value)->value('title');
+                	$title = DB::name('sign_task')->where('id = '.$value)->value('title');
                     return $title;
-                }],
+                	}
+                ],
                 ['right_button', '操作', 'btn']
             ])
                 ->addRightButton('delete') // 添加删除按钮
@@ -57,10 +171,9 @@ class Sign extends Admin
                 ->fetch();
             break;
         case 'tab2':
-            $data_location = DB::name('sign_record')->field("latitude")->select();
-            //dump($data_location);
-       
+            $data_location = DB::name('sign_record')->field("latitude")->select();       
             return parent::fetch('map',['data' => $data_location]);
+            
             break;
           }
  		
@@ -315,7 +428,7 @@ class Sign extends Admin
 
     }
 
-     /*
+    /*
     * 根据学号获取管理员（辅导员）ID
     */
     private function getStuAdminId(){
@@ -328,4 +441,5 @@ class Sign extends Admin
             ->value('class');
         return $class_id;
     }
+
 }
