@@ -8,68 +8,25 @@
 <script>
 
 
+var location_data = new Array();
 
-     var heatmapData = [{
-    "lng": 116.191031,
-    "lat": 39.988585,
-    "count": 10
-}, {
-    "lng": 116.389275,
-    "lat": 39.925818,
-    "count": 11
-}, {
-    "lng": 116.287444,
-    "lat": 39.810742,
-    "count": 12
-}, {
-    "lng": 116.481707,
-    "lat": 39.940089,
-    "count": 13
-}, {
-    "lng": 116.410588,
-    "lat": 39.880172,
-    "count": 14
-}, {
-    "lng": 116.394816,
-    "lat": 39.91181,
-    "count": 15
-}, {
-    "lng": 116.416002,
-    "lat": 39.952917,
-    "count": 16
-}, {
-    "lng": 116.39671,
-    "lat": 39.924903,
-    "count": 17
-}, {
-    "lng": 115.180816,
-    "lat": 37.957553,
-    "count": 18
-}, {
-    "lng": 116.49671,
-    "lat": 36.924903,
-    "count": 19
-}, {
-    "lng": 114.39671,
-    "lat": 37.924903,
-    "count": 20
-},{
-    "lng": 116.39671,
-    "lat": 38.924903,
-    "count": 21
-}, {
-    "lng": 123.39671,
-    "lat": 12.924903,
-    "count": 22
-},{
-    "lng": 116.400,
-    "lat": 37.924903,
-    "count": 23
-}];
+{volist name="location_data" id="vo"}
+
+  location_data[{$key}] = new Array();
+  location_data[{$key}]['lng'] = {$vo.latitude};
+  location_data[{$key}]['lat'] = {$vo.longitude};
+  location_data[{$key}]["count"] = {$key};
+{/volist}
+
+
+    //console.log(location_data);
+
+     var heatmapData = location_data;
+    console.log(heatmapData);
 
     var map = Loca.create('container', {
         features: ['bg', 'road'],
-        center: [116.397475, 39.908668],
+        center: [108.911429,34.376742],
         zoom: 10
     });
 
@@ -108,7 +65,7 @@
         }
     });
 
-   
+
 
     layer.render();
 
