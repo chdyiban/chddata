@@ -14,7 +14,8 @@ use app\yiban\model\BaseInfo as BaseModel;
  * 易班签到控制器
  * @package app\yiban\home
  */
-class Sign extends Home
+
+class Sign extends Api
 {
     const SCHOOL_AREA = array(
         array( 'y' => 34.376459,'x' => 108.912002),
@@ -32,17 +33,12 @@ class Sign extends Home
 
 	public function init(){
 
-		//$checkData = $this->checkParams();
-		//if($checkData['status'] !== true){
-		//	return json($checkData);
-		//}
+		$checkData = $this->checkParams();
+		if($checkData['status'] !== true){
+			return json($checkData);
+		}
 
-      //  $stuInfo = $this->getStudentInfo($this->token);
-      $stuInfo = new \stdClass();
-      $stuInfo->yb_realname = '李强';
-      $stuInfo->yb_studentid = '2017901906';
-      $stuInfo->yb_userid = '1';
-
+       $stuInfo = $this->getStudentInfo($this->token);
 
         if($stuInfo != false){
             $model = new BaseModel;
@@ -53,7 +49,7 @@ class Sign extends Home
             $personalInitData['yb_id'] = $stuInfo->yb_userid;
             $personalInitData['stu_id'] = $stuInfo->yb_studentid;
 
-            //$personalInitData['head_img'] = $stuInfo->yb_userhead;
+            $personalInitData['head_img'] = $stuInfo->yb_userhead;
             $personalInitData['sign_status'] = $this->getUserSignStatus($personalInitData['stu_id']);
 
             if($stuBaseInfo['major']){
@@ -65,7 +61,7 @@ class Sign extends Home
 
             $this->initData['personal'] = $personalInitData;
             $this->initData['public'] = $this->getSign($personalInitData['stu_id']);
-            dump(json($this->initData));
+            return json($this->initData);
         }else{
             $data['status'] = 'error';
             $data['code'] = '0x2004';
@@ -76,11 +72,10 @@ class Sign extends Home
     }
 
     public function submit(){
+      $token = $this->getToken($this->verifyRequest);
 
-        $token = $this->getToken($this->verifyRequest);
-
-        //申请校级权限后打开
-        $stu_id = $this->getStudentId($token);
+      //申请校级权限后打开
+      $stu_id = $this->getStudentId($token);
 
     	$timestamp = input('post.noncestr');
 
@@ -328,9 +323,8 @@ class Sign extends Home
     /*
     * 获取当前点名任务及对应通知
     */
-    //private
-    public function getSign(){
-        $stu_id
+
+    private function getSign($stu_id){
         $signData = array();
         $sign = $this->getSignTask($stu_id);
         if($sign['task_status'] == 0){
@@ -377,7 +371,7 @@ class Sign extends Home
               ->find();
           if($task){
               $task['task_status'] = 1;
-              $task['msg'] = '正在进签到';
+              $task['msg'] = '正在进行签到';
           }else{
               //2.当前时间不在任务开始-区间内,寻找接下来还有没有任务
               $task = Db::table('dp_sign_task')
@@ -389,7 +383,7 @@ class Sign extends Home
                 $task['task_status'] = 0;
                 $task['msg'] = '当前无签到任务';
               }else {
-                echo "下次点名还没到，进行预告";
+                //echo "下次点名还没到，进行预告";
                 //即点名未开始(预告)
                 $task['task_status'] = 2;
                 $task['msg'] = '即将开始签到';
@@ -436,32 +430,11 @@ class Sign extends Home
         }
 
     }
-    /*
-    * 用来获取距离当前时间最近的下次当天签到任务
-    */
-    public function getTodayNextTask(){
-      $stu_id = "2017902148";
-      $time = time();
-      $todayStartTime = mktime(0,0,0,date("m",$time),date("d",$time),date("Y",$time));
-      $todayEndTime = mktime(23,59,59,date("m",$time),date("d",$time),date("Y",$time));
-      $adminId = $this->getStuAdminId($stu_id);
-      $task = Db::table('dp_sign_task')
-          ->where('start_time','>',$time)
-          ->where('end_time','<',$todayEndTime)
-          ->order('start_time ASC,id ASC')
-          ->find();
-      if (empty($task)) {
-        echo "当天没有后续的签到任务了";
-      }else {
-        echo "下次点名还没到，进行预告";
-      }
-    }
 
     /*
     * 用来判断当天是否有已经过去的签到任务
     */
-    public function isHavePastTask(){
-      $stu_id = "2017902148";
+    private function isHavePastTask($stu_id){
       $time = time();
       $todayStartTime = mktime(0,0,0,date("m",$time),date("d",$time),date("Y",$time));
       $todayEndTime = mktime(23,59,59,date("m",$time),date("d",$time),date("Y",$time));

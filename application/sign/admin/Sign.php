@@ -45,6 +45,7 @@ class Sign extends Admin
       switch ($group) {
         case 'tab1':
         return ZBuilder::make('table')
+        ->hideCheckbox()
         ->addColumns([
             ['name', '姓名','', '', '', 'text-center'],
             ['class', '班级','', '', '', 'text-center'],
@@ -100,6 +101,7 @@ class Sign extends Admin
       switch ($group) {
         case 'tab1':
         return ZBuilder::make('table')
+          ->hideCheckbox()
           ->addColumns([
             ['class', '签到率','callback',function($value, $data){
               return $this->getSignRateByClassId($value, $data['id']);
@@ -167,25 +169,25 @@ class Sign extends Admin
         //dump($data);
 
         return ZBuilder::make('table')
-                ->addColumns([
-                  ['number','班级','callback',function($value){
-                      return $this->getClassId($value);
-                  }],
-                  ['major','专业'],
-                  ['college','学院'],
-                  ['class','未签到人数','callback',function($value, $data){
-                      $classList = $this -> getNotSignListByClassId($value, $data['id']);
-                      return count($classList);
-                  },'__data__'],
-                  ['title','晚点名'],
+          ->hideCheckbox()
+          ->addColumns([
+            ['number','班级','callback',function($value){
+                return $this->getClassId($value);
+            }],
+            ['major','专业'],
+            ['college','学院'],
+            ['class','未签到人数','callback',function($value, $data){
+                $classList = $this -> getNotSignListByClassId($value, $data['id']);
+                return count($classList);
+            },'__data__'],
 
-            ])
-                ->addColumn('right_button', '查看详情', 'btn')
-                ->addTopSelect('task_id', '',$sign_task_list,$taskId)//添加顶部筛选
-                ->addRightButton('edit',['href' => url('signSpecialDetailList',['class_id' => '__class__','task_id'=> '__task_id__']),'title' => '详情','icon'=>'fa fa-fw fa-th-list'],'')
-                ->setRowList($data) // 设置表格数据
-                ->setPageTitle('特殊情况列表')
-                ->fetch();
+      ])
+          ->addColumn('right_button', '查看详情', 'btn')
+          ->addTopSelect('task_id', '',$sign_task_list,$taskId)//添加顶部筛选
+          ->addRightButton('edit',['href' => url('signSpecialDetailList',['class_id' => '__class__','task_id'=> '__task_id__']),'title' => '详情','icon'=>'fa fa-fw fa-th-list'],'')
+          ->setRowList($data) // 设置表格数据
+          ->setPageTitle('特殊情况列表')
+          ->fetch();
     }
      /*
     * 获取签到率，分别有学院签到率，年级签到率，班级签到率
@@ -213,15 +215,15 @@ class Sign extends Admin
     public function signSpecialDetailList($class_id, $task_id){
       $classList = $this -> getNotSignListByClassId($class_id, $task_id);
       return ZBuilder::make('table')
-              ->addColumns([
-                ['number','学号'],
-                ['name','姓名'],
-                ['sex','性别'],
-          ])
-              ->setRowList($classList) // 设置表格数据
-              ->setPageTitle('未签到人员名单')
-              ->fetch();
-
+        ->hideCheckbox()
+        ->addColumns([
+          ['number','学号'],
+          ['name','姓名'],
+          ['sex','性别'],
+        ])
+        ->setRowList($classList) // 设置表格数据
+        ->setPageTitle('未签到人员名单')
+        ->fetch();
     }
     /*
     * 获取班级未签到名单，以$task_id为单位统计

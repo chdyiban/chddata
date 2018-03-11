@@ -57,6 +57,7 @@ class Notice extends Admin
       ];
 
       return ZBuilder::make('table')
+        ->hideCheckbox()
         ->addColumns([
           ['task_title', '晚点名事项',],
     			['title', '通知标题','text.edit', '', '', 'text-center'],
