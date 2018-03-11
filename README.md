@@ -22,7 +22,7 @@
   	}
   ```
 * Excel: Excel导入导出插件
-  
+
   > 导出教程
   > http://bbs.dolphinphp.com/?/article/16
   >
@@ -30,11 +30,11 @@
   > http://bbs.dolphinphp.com/?/question/126
 
 * 待添加:定时任务插件 http://www.dolphinphp.com/module/vNwk5YamCg7zloDO.html
-*关于晚点名提交的说明：
+
+
+* 关于晚点名提交的说明：
     ```
     1、建立sign模块。
     2、初步写好晚点名的后台界面。
     3、更改yiban模块下的晚点名的前台的逻辑。
     ```
-
-
