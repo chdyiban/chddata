@@ -46,3 +46,17 @@ function sendRequest($uri,$post_data = ''){
         $response = curl_exec($ch);
         return $response;
     }
+//无论如何都是获取上次的任务信息
+function getLastSignTask(){
+    $time = time();
+    $todayStartTime = mktime(0,0,0,date("m",$time),date("d",$time),date("Y",$time));
+    $todayEndTime = mktime(23,59,59,date("m",$time),date("d",$time),date("Y",$time));
+    //$adminId = $this->getStuAdminId();
+    $adminId = 1;
+    //获取距离当前时间最近的上一次已经结束的晚点名任务
+    $task = Db::table('dp_sign_task')
+        ->where('end_time','<',$time)
+        ->order('start_time Desc,id DESC')
+        ->find();
+    return $task;
+  }

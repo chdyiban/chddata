@@ -1,0 +1,73 @@
+{extend name="$_admin_base_layout" /}
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+{block name="content"}
+<div id="container" style="position: relative;min-height: 450px;" class="container"></div>
+
+<script src="http://webapi.amap.com/loca?key=ecf126c3c3aa610b9c4392a55ed94e85"></script>
+<script src="http://a.amap.com/Loca/static/mock/heatmapData.js"></script>
+<script>
+
+
+var location_data = new Array();
+
+{volist name="location_data" id="vo"}
+
+  location_data[{$key}] = new Array();
+  location_data[{$key}]['lng'] = {$vo.latitude};
+  location_data[{$key}]['lat'] = {$vo.longitude};
+  location_data[{$key}]["count"] = {$key};
+{/volist}
+
+
+    //console.log(location_data);
+
+     var heatmapData = location_data;
+    console.log(heatmapData);
+
+    var map = Loca.create('container', {
+        features: ['bg', 'road'],
+        center: [108.911429,34.376742],
+        zoom: 10
+    });
+
+    var layer = Loca.visualLayer({
+        container: map,
+        type: 'heatmap',
+        shape: 'normal'
+    });
+
+    var list = [];
+    var i = -1, length = heatmapData.length;
+    while (++i < length) {
+        var item = heatmapData[i];
+        list.push({
+            coordinate: [item.lng, item.lat],
+            count: item.count
+        })
+    }
+
+    layer.setData(list, {
+        lnglat: 'coordinate',
+        value: 'count'
+    });
+
+    layer.setOptions({
+        style: {
+            radius: 25,
+            opacity: [0, 0.7],
+        },
+        gradient: {
+            0.5: 'blue',
+            0.65: 'rgb(117,211,248)',
+            0.7: 'rgb(0, 255, 0)',
+            0.9: '#ffea00',
+            1.0: 'red'
+        }
+    });
+
+
+
+    layer.render();
+
+</script>
+{/block}
