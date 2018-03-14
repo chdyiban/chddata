@@ -30,8 +30,8 @@ class Sign extends Admin
       //添加了admin_id
       $data_list = Db::view('sign_record')
           ->view('sign_task','id,title,adminid','sign_record.task_id=sign_task.id')
-          ->view('yiban_base_info','class,sex,name,college,number,admin_id','sign_record.stu_id=yiban_base_info.number AND
-                          yiban_base_info.admin_id ='.UID)
+          // ->view('yiban_base_info','class,sex,name,college,number,admin_id','sign_record.stu_id=yiban_base_info.number AND
+          //                 yiban_base_info.admin_id ='.UID)
           ->where($map)
           ->order($order)
           ->paginate();
