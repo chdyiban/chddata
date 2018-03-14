@@ -106,12 +106,12 @@ class Sign extends Api
                    $data['status'] = 'error';
                    $data['info'] = '签到失败';
                    $data['code'] = '0x2003';
-               }else {
+               }
+             }else {
                  $data['status'] = 'error';
                  $data['code'] = '0x2002';
                  $data['info'] = '已经签到！';
                }
-             }
         }
         return json($data);
     }
