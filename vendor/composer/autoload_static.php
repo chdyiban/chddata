@@ -20,6 +20,10 @@ class ComposerStaticInitea24a8d88377c9cd0962665edfe67ce8
             'think\\captcha\\' => 14,
             'think\\' => 6,
         ),
+        'W' => 
+        array (
+            'WeChat\\' => 7,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -39,6 +43,10 @@ class ComposerStaticInitea24a8d88377c9cd0962665edfe67ce8
         array (
             0 => __DIR__ . '/..' . '/topthink/think-image/src',
             1 => __DIR__ . '/../..' . '/thinkphp/library/think',
+        ),
+        'WeChat\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/zoujingli/wechat-developer/WeChat',
         ),
     );
 
