@@ -24,52 +24,51 @@ class Sign extends Api
         array( 'y' => 34.370743,'x' => 108.890995),
         array( 'y' => 34.376459,'x' => 108.912002),
     );
-
-	public function _initialize()
+    public function _initialize()
     {
 
     	parent::_initialize();
     }
 
-	public function init(){
+  	public function init(){
 
-		$checkData = $this->checkParams();
-		if($checkData['status'] !== true){
-			return json($checkData);
-		}
+  		$checkData = $this->checkParams();
+  		if($checkData['status'] !== true){
+  			return json($checkData);
+  		}
 
-       $stuInfo = $this->getStudentInfo($this->token);
+     $stuInfo = $this->getStudentInfo($this->token);
 
-        if($stuInfo != false){
-            $model = new BaseModel;
-            $stuBaseInfo = $model->getBaseInfoById($stuInfo->yb_studentid);
+      if($stuInfo != false){
+          $model = new BaseModel;
+          $stuBaseInfo = $model->getBaseInfoById($stuInfo->yb_studentid);
 
-            $this->initData['status'] = 'true';
-            $personalInitData['yb_realname'] = $stuInfo->yb_realname;
-            $personalInitData['yb_id'] = $stuInfo->yb_userid;
-            $personalInitData['stu_id'] = $stuInfo->yb_studentid;
+          $this->initData['status'] = 'true';
+          $personalInitData['yb_realname'] = $stuInfo->yb_realname;
+          $personalInitData['yb_id'] = $stuInfo->yb_userid;
+          $personalInitData['stu_id'] = $stuInfo->yb_studentid;
 
-            $personalInitData['head_img'] = $stuInfo->yb_userhead;
-            $personalInitData['sign_status'] = $this->getUserSignStatus($personalInitData['stu_id']);
+          $personalInitData['head_img'] = $stuInfo->yb_userhead;
+          $personalInitData['sign_status'] = $this->getUserSignStatus($personalInitData['stu_id']);
 
-            if($stuBaseInfo['major']){
-                $personalInitData['major'] = $stuBaseInfo['major'];
-            }
-            if($stuBaseInfo['college']){
-                $personalInitData['college'] = $stuBaseInfo['college'];
-            }
+          if($stuBaseInfo['major']){
+              $personalInitData['major'] = $stuBaseInfo['major'];
+          }
+          if($stuBaseInfo['college']){
+              $personalInitData['college'] = $stuBaseInfo['college'];
+          }
 
-            $this->initData['personal'] = $personalInitData;
-            $this->initData['public'] = $this->getSign($personalInitData['stu_id']);
-            return json($this->initData);
-        }else{
-            $data['status'] = 'error';
-            $data['code'] = '0x2004';
-            $data['info'] = '无法获取易班信息，可能是未通过校方认证';
-            return json($data);
-        }
+          $this->initData['personal'] = $personalInitData;
+          $this->initData['public'] = $this->getSign($personalInitData['stu_id']);
+          return json($this->initData);
+      }else{
+          $data['status'] = 'error';
+          $data['code'] = '0x2004';
+          $data['info'] = '无法获取易班信息，可能是未通过校方认证';
+          return json($data);
+      }
 
-    }
+  }
 
     public function submit(){
       $token = $this->getToken($this->verifyRequest);
@@ -97,15 +96,22 @@ class Sign extends Api
             $data['code'] = '0x2002';
             $data['info'] = '已经签到，若要重签，请1分钟后再试';
         }else{
-            $taskId = $this->getSignTaskId($stu_id);
-            if($this->recordSignData($stu_id,$latitude,$longitude,$taskId)){
-                $data['status'] = 'success';
-                $data['info'] = '签到成功';
-            }else{
-                $data['status'] = 'error';
-                $data['info'] = '签到失败';
-                $data['code'] = '0x2003';
-            }
+          //提交数据判断，仅未签（正常签到、补签） 或 定位不在学校签(重签) 可以正常签到。
+             if(input('post.status') == 2||  input('post.status') == 0){
+               $taskId = $this->getSignTaskId($stu_id);
+               if($this->recordSignData($stu_id,$latitude,$longitude,$taskId)){
+                   $data['status'] = 'success';
+                   $data['info'] = '签到成功';
+               }else{
+                   $data['status'] = 'error';
+                   $data['info'] = '签到失败';
+                   $data['code'] = '0x2003';
+               }
+             }else {
+                 $data['status'] = 'error';
+                 $data['code'] = '0x2002';
+                 $data['info'] = '已经签到！';
+               }
         }
         return json($data);
     }
@@ -281,6 +287,8 @@ class Sign extends Api
     private function getUserSignStatus($stu_id){
         //1.当前时间是否存在点名任务，如果不存在，则不用签 status = -1;
         //2.当前时间存在点名任务，查看是否有签到记录
+        //3.判断签到记录里的at_school如果是0则 status = 2表示可以重签，如果是1则不可以重签
+
         $task = $this->getSignTask($stu_id);
         if($task['task_status'] == 0){
             $status = -1;
@@ -288,11 +296,15 @@ class Sign extends Api
             $signRecord = Db::table('dp_sign_record')
                 ->where('task_id',$task['id'])
                 ->where('stu_id',$stu_id)
+                ->order('id DESC')
                 ->find();
-            if($signRecord){
-                $status = 1;
-            }else{
-                $status = 0;
+            if(empty($signRecord)){
+              $status = 0;
+            }elseif($signRecord['at_school'] == 1){
+              $status = 1;
+            }elseif($signRecord['at_school'] == 0){
+              //可以重新签
+              $status = 2;
             }
         }
         return $status;
@@ -383,7 +395,6 @@ class Sign extends Api
                 $task['task_status'] = 0;
                 $task['msg'] = '当前无签到任务';
               }else {
-                //echo "下次点名还没到，进行预告";
                 //即点名未开始(预告)
                 $task['task_status'] = 2;
                 $task['msg'] = '即将开始签到';
@@ -453,6 +464,7 @@ class Sign extends Api
         $signRecord = Db::table('dp_sign_record')
             ->where('task_id',$task['id'])
             ->where('stu_id',$stu_id)
+            ->where('at_school',1) //找出有效的签到，如果没有需要补签
             ->find();
         //dump($signRecord);
         if(empty($signRecord)){
