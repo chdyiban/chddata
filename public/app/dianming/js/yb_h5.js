@@ -52,58 +52,6 @@ function yibanhtml5location(postion) {
 	marker.setPosition([pos.longitude, pos.latitude]);
 	map.setCenter([pos.longitude, pos.latitude]);
 	//	map.setFitView().getCenter();
-	if(f == 1) {
-		f = 0;
-		//客户端判断成功后再通过ajax提交给服务端
-		if(!polygon.contains([pos.longitude, pos.latitude])) { //暂时改为false，用于测试
-			$.confirm({
-				title: '当前位置不在校园内!',
-				text: '是否继续签到？',
-				onOK: function() {
-					//点击确认
-					attend();
-				},
-				onCancel: function() {
-					$("#attend").removeClass("weui-btn_loading").text("重新签到");
-					return;
-				}
-			});
-		} else {
-			attend();
-		}
-	}
-	/*
-	 * 签到
-	 * @noncestr:时间戳
-	 * @latitude:纬度
-	 * @longitude:经度
-	 */
-	function attend() {
-		$.ajax({
-			type: "POST",
-			url: "http://www.chddata.com/index.php/yiban/sign/submit?appid=" + APP_ID + "&verify_request=" + vcode,
-			async: true,
-			cache: false,
-			data: {
-				noncestr: Date.parse(new Date()),
-				latitude: pos.latitude,
-				longitude: pos.longitude
-			},
-			success: function(d) {
-				if(d.status == "success") {
-					$.toast("签到成功！");
-					$("#taskStatus").text("已签").addClass("primary").removeClass("warning");
-					$("#attend").removeClass("weui-btn_loading weui-btn_warn").text("签到成功");
-				} else {
-					$.toast(d.info + "（错误代码：" + d.code + "）", "cancel", 2000);
-					$("#attend").removeClass("weui-btn_loading").addClass("weui-btn_warn").text("重新签到");
-				}
-			},
-			error: function(e) {
-				$.toast(JSON.stringify(e), "forbidden");
-			}
-		});
-	}
 }
 
 /*

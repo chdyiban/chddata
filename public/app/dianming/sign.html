@@ -20,7 +20,6 @@
 <script src="js/yb_h5.js?v=001" type="text/javascript" charset="utf-8" id="ybH5"></script>
 <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.2&key=c8e57403412eb33b47795d1bd123100e&callback=init"></script>
 <script type="text/javascript">
-	var f = 0; //定位标记，0：普通定位，1：签到
 	var map; //地图对象
 	var polygon; //地图多边形对象
 	var marker; //地图标记点对象
@@ -129,18 +128,32 @@
 		setIndexInfo();
 		//签到
 		$("#attend").on("click", function() {
-			if($(this).hasClass("weui-btn_disabled") || $(this).hasClass("weui-btn_loading")) {
+			var _this = $(this);
+			if(_this.hasClass("weui-btn_disabled") || _this.hasClass("weui-btn_loading")) {
 				return;
 			}
-			if($(this).data("ongeo")) {
+			if(_this.data("ongeo")) {
 				$.toptip('定位中，请稍候', 'warning');
 				return;
 			}
-			f = 1;
-			marker.setMap(null);
-			geolocation.getCurrentPosition();
-			$.toptip('正在定位...', 'warning');
-			$(this).addClass("weui-btn_loading").text("正在签到……");
+			var pos = marker.getPosition();
+			_this.addClass("weui-btn_loading").text("正在签到……");
+			if(!polygon.contains([pos.lng, pos.lat])) { //暂时改为false，用于测试
+				$.confirm({
+					title: '当前位置不在校园内!',
+					text: '是否继续签到？',
+					onOK: function() {
+						//点击确认
+						attend(pos.lng, pos.lat);
+					},
+					onCancel: function() {
+						$("#attend").removeClass("weui-btn_loading").text("签到");
+						return;
+					}
+				});
+			} else {
+				attend(pos.lng, pos.lat);
+			}
 		});
 		//通知列表绑定点击事件
 		$("#notice").children("a").on("click", function(e) {
@@ -157,6 +170,8 @@
 	 * 设置首页信息
 	 */
 	function setIndexInfo() {
+		var atdBtn = $("#attend");
+		var mission = $("#mission");
 		//任务状态
 		var ts = publicInfo.task_status;
 		//学生状态
@@ -166,25 +181,28 @@
 		 * @ss:学生的签到状态，0——未签到，1——已签到，-1——无任务或所有任务已完成
 		 * @ts:任务的状态，0——无任务或没有未完成的任务，1——有任务在进行，2——任务即将开始，3——补签任务
 		 */
-		if(ss == -1 && ts == 0) {//当前没有了签到任务
-			$("#mission").children(".weui-panel__hd").text(publicInfo.msg);
-			$("#attend").text("当前无签到任务").addClass("weui-btn_disabled");
-		} else if(ss == 1 && ts == 1) {//当前正在签到并且该学生完成签到
-			$("#attend").text("已签到");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "已签到", "primary");
-		} else if(ss == 0 && ts == 1) {//当前正在签到并且该学生尚未签到
-			$("#attend").text("签到");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未签到", "warning");
-		} else if(ss == 0 && ts == 2) {//对任务进行预告，点名未开始
-			$("#mission").children(".weui-panel__hd").text("任务即将开始");
-			$("#attend").text("签到任务未开始").addClass("weui-btn_disabled");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未开始", "primary");
-		} else if(ss == 0 && ts == 3) {//该学生尚未签到需要进行补签
-			$("#attend").text("补签").addClass("weui-btn_warn");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "待补签", "warning");
+		if(ss == -1 && ts == 0) { //当前没有了签到任务
+			mission.children(".weui-panel__hd").text(publicInfo.msg);
+			atdBtn.text("当前无签到任务").addClass("weui-btn_disabled");
+		} else if(ss == 2 && ts == 1){
+			atdBtn.text("重新签到");
+			createMisson(mission, publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "已签到", "primary");
+		} else if(ss == 1 && ts == 1) { //当前正在签到并且该学生完成签到
+			atdBtn.text("已签到").addClass("weui-btn_disabled");
+			createMisson(mission, publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "已签到", "primary");
+		} else if(ss == 0 && ts == 1) { //当前正在签到并且该学生尚未签到
+			atdBtn.text("签到");
+			createMisson(mission, publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未签到", "warning");
+		} else if(ss == 0 && ts == 2) { //对任务进行预告，点名未开始
+			mission.children(".weui-panel__hd").text("任务即将开始");
+			atdBtn.text("签到任务未开始").addClass("weui-btn_disabled");
+			createMisson(mission, publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未开始", "primary");
+		} else if((ss== 2 || ss == 0) && ts == 3) { //该学生尚未签到需要进行补签
+			atdBtn.text("补签").addClass("weui-btn_warn");
+			createMisson(mission, publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "待补签", "warning");
 		} else {
 			console.warn("获取状态失败");
-			$("#attend").text("获取状态失败").addClass("weui-btn_disabled");
+			atdBtn.text("获取状态失败").addClass("weui-btn_disabled");
 		}
 		$("#avatarSignImg").attr("src", personalInfo.head_img);
 		$("#avatarSignName").text(personalInfo.yb_realname || "username");
@@ -202,7 +220,7 @@
 			$("#noticeHd").text("暂无通知")
 		}
 	}
-	
+
 	/*
 	 * 2018-03-12 Wu Zhendong
 	 * 创建任务元素
@@ -224,5 +242,38 @@
 		var subscript = $("<div></div>").addClass("subscript").attr("id", "taskStatus");
 		subscript.text(statusText).addClass(statusStyle);
 		$(obj).append(bd.append(box.append(boxBd.append(boxTitle, boxDesc), subscript)));
+	}
+
+	/*
+	 * 签到
+	 * @noncestr:时间戳
+	 * @latitude:纬度
+	 * @longitude:经度
+	 */
+	function attend(lng, lat) {
+		$.ajax({
+			type: "POST",
+			url: "http://www.chddata.com/index.php/yiban/sign/submit?appid=" + APP_ID + "&verify_request=" + vcode,
+			async: true,
+			cache: false,
+			data: {
+				noncestr: Date.parse(new Date()),
+				latitude: lat,
+				longitude: lng
+			},
+			success: function(d) {
+				if(d.status == "success") {
+					$.toast("签到成功！");
+					$("#attend").removeClass("weui-btn_loading weui-btn_warn").text("签到成功").addClass("weui-btn_disabled");
+					$("#taskStatus").text("已签").addClass("primary").removeClass("warning");
+				} else {
+					$.toast(d.info + "（错误代码：" + d.code + "）", "cancel", 2000);
+					$("#attend").removeClass("weui-btn_loading").addClass("weui-btn_warn").text("重新签到");
+				}
+			},
+			error: function(e) {
+				$.toast(JSON.stringify(e), "forbidden");
+			}
+		});
 	}
 </script>
