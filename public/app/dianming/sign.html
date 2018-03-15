@@ -10,8 +10,27 @@
 	<div class="weui-panel__hd">当前任务</div>
 </div>
 <div class="weui-panel weui-panel_access">
-	<div class="weui-panel__hd" id="noticeHd">通知</div>
+	<div class="weui-panel__hd">通知</div>
 	<div class="weui-panel__bd" id="notice">
+	</div>
+</div>
+<div class="weui-cells weui-cells_form" id="sms" style="display: none;">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">家长手机</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" name="smsTel" id="tel" type="smsTel" disabled="disabled" value="13087571262">
+		</div>
+	</div>
+	<div class="weui-cell weui-cell_vcode">
+		<div class="weui-cell__hd">
+			<label class="weui-label">短信验证码</label>
+		</div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" name="smsVCode" id="smsVCode" type="text" placeholder="请输入验证码">
+		</div>
+		<div class="weui-cell__ft">
+			<button class="weui-vcode-btn">获取验证码</button>
+		</div>
 	</div>
 </div>
 <div class="content-pd">
@@ -152,77 +171,122 @@
 		$("#avatarSign").on("click", function(e) {
 			$(".weui-tabbar__item").eq(3).trigger("click");
 		});
+
+		//获取验证码
+		$("button.weui-vcode-btn").on("click", function(e) {
+			if($(this).data("load") == "true") {
+				return;
+			}
+			var smsBtn = $("button.weui-vcode-btn");
+			$.ajax({
+				type: "post",
+				url: "",
+				async: true,
+				beforeSend: function(e) {
+					smsBtn.text("正在获取...").data("load", "true");
+				},
+				success: function(d) {
+					var countdown = 180;
+					smsBtn.text(countdown + "s...");
+					var timer = setInterval(function(e) {
+						countdown--;
+						smsBtn.text(countdown + "s...");
+						if(countdown == 0) {
+							clearInterval(timer);
+							smsBtn.text("重新获取验证码").data("load", "false");
+						}
+					}, 1000);
+				},
+				error: function(e) {
+					$.toast(JSON.stringify(e), "forbidden");
+					smsBtn.text("重新获取验证码").data("load", "false");
+				}
+			});
+		})
 	});
 	/*
 	 * 设置首页信息
 	 */
 	function setIndexInfo() {
-		//任务状态
-		var ts = publicInfo.task_status;
-		//学生状态
-		var ss = personalInfo.sign_status;
-		/*
-		 * 签到状态逻辑判断
-		 * @ss:学生的签到状态，0——未签到，1——已签到，-1——无任务或所有任务已完成
-		 * @ts:任务的状态，0——无任务或没有未完成的任务，1——有任务在进行，2——任务即将开始，3——补签任务
-		 */
-		if(ss == -1 && ts == 0) {//当前没有了签到任务
+		//任务签到状态
+		if(publicInfo.task_status == 0) {
 			$("#mission").children(".weui-panel__hd").text(publicInfo.msg);
-			$("#attend").text("当前无签到任务").addClass("weui-btn_disabled");
-		} else if(ss == 1 && ts == 1) {//当前正在签到并且该学生完成签到
-			$("#attend").text("已签到");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "已签到", "primary");
-		} else if(ss == 0 && ts == 1) {//当前正在签到并且该学生尚未签到
-			$("#attend").text("签到");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未签到", "warning");
-		} else if(ss == 0 && ts == 2) {//对任务进行预告，点名未开始
-			$("#mission").children(".weui-panel__hd").text("任务即将开始");
-			$("#attend").text("签到任务未开始").addClass("weui-btn_disabled");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "未开始", "primary");
-		} else if(ss == 0 && ts == 3) {//该学生尚未签到需要进行补签
-			$("#attend").text("补签").addClass("weui-btn_warn");
-			createMisson($("#mission"), publicInfo.task_name, publicInfo.start_time, publicInfo.end_time, "待补签", "warning");
 		} else {
-			console.warn("获取状态失败");
-			$("#attend").text("获取状态失败").addClass("weui-btn_disabled");
+			var bd = $("<div></div>").addClass("weui-panel__bd nosign-history");
+			var box = $("<div></div>").addClass("weui-media-box weui-media-box_appmsg");
+			var boxBd = $("<div></div>").addClass("weui-media-box__bd");
+			var boxTitle = $("<h4></h4>").addClass("weui-media-box__title");
+			boxTitle.text(publicInfo.task_name);
+			var boxDesc = $("<p></p>").addClass("weui-media-box__desc").text("~");
+			boxDesc.prepend("<span>" + publicInfo.start_time + "</span>").append("<span>" + publicInfo.end_time + "</span>");
+			var subscript = $("<div></div>").addClass("subscript").attr("id", "taskStatus");
+			subscript.text(function() {
+				if(personalInfo.sign_status == 1) {
+					return "已签";
+				}
+				if(personalInfo.sign_status == 0) {
+					return "未签";
+				}
+			}).addClass(function() {
+				if(personalInfo.sign_status == 1) {
+					return "primary";
+				}
+				if(personalInfo.sign_status == 0) {
+					return "warning";
+				}
+			});
+			$("#mission").append(bd.append(box.append(boxBd.append(boxTitle, boxDesc), subscript)));
 		}
+		//个人签到状态
+		$("#attend").text(function() {
+			switch(personalInfo.sign_status) {
+				case 1:
+					return "已签";
+					break;
+				case 0:
+					return "签到";
+					break;
+				case -1:
+					return "当前无签到任务";
+					break;
+				default:
+					break;
+			}
+		}).addClass(function() {
+			switch(personalInfo.sign_status) {
+				case 1:
+					return "";
+					break;
+				case 0:
+					return "";
+					break;
+				case -1:
+					return "weui-btn_disabled";
+					break;
+				default:
+					break;
+			}
+		});
 		$("#avatarSignImg").attr("src", personalInfo.head_img);
 		$("#avatarSignName").text(personalInfo.yb_realname || "username");
 		//生成消息列表
-		if(publicInfo.notice) {
-			$.each(publicInfo.notice, function(i, n) {
-				var box = $("<a href='javascript:;'></a>").addClass("weui-media-box weui-media-box_appmsg");
-				var box_bd = $("<div></div>").addClass("weui-media-box__bd");
-				var box_title = $("<h4></h4>").addClass("weui-media-box__title").text(n.title);
-				var box_desc = $("<p></p>").addClass("weui-media-box__desc").text(n.notice);
-				var box_info = $("<p></p>").addClass("weui-media-box__info").text(n.timestamp);
-				$("#notice").append(box.append(box_bd.append(box_title, box_desc, box_info)));
-			});
+		$.each(publicInfo.notice, function(i, n) {
+			var box = $("<a href='javascript:;'></a>").addClass("weui-media-box weui-media-box_appmsg");
+			var box_bd = $("<div></div>").addClass("weui-media-box__bd");
+			var box_title = $("<h4></h4>").addClass("weui-media-box__title").text(n.title);
+			var box_desc = $("<p></p>").addClass("weui-media-box__desc").text(n.notice);
+			var box_info = $("<p></p>").addClass("weui-media-box__info").text(n.timestamp);
+			$("#notice").append(box.append(box_bd.append(box_title, box_desc, box_info)));
+		});
+
+		//短信验证
+		$("#smsTel").val(publicInfo.tel);
+		if(publicInfo.sms_verify == 1) {
+			$("#sms").show();
+			$("#attend").addClass("weui-btn_disabled");
 		} else {
-			$("#noticeHd").text("暂无通知")
+			$("#sms").hide();
+			$("#attend").removeClass("weui-btn_disabled");
 		}
-	}
-	
-	/*
-	 * 2018-03-12 Wu Zhendong
-	 * 创建任务元素
-	 * @obj 父元素
-	 * @taskName 任务标题
-	 * @startTime 开始时间
-	 * @endTime 结束时间
-	 * @statusText 状态文本
-	 * @statusStyle 状态样式
-	 */
-	function createMisson(obj, taskName, startTime, endTime, statusText, statusStyle) {
-		var bd = $("<div></div>").addClass("weui-panel__bd nosign-history");
-		var box = $("<div></div>").addClass("weui-media-box weui-media-box_appmsg");
-		var boxBd = $("<div></div>").addClass("weui-media-box__bd");
-		var boxTitle = $("<h4></h4>").addClass("weui-media-box__title");
-		boxTitle.text(taskName);
-		var boxDesc = $("<p></p>").addClass("weui-media-box__desc").text("~");
-		boxDesc.prepend("<span>签到时间：" + startTime + "</span>").append("<span>" + endTime + "</span>");
-		var subscript = $("<div></div>").addClass("subscript").attr("id", "taskStatus");
-		subscript.text(statusText).addClass(statusStyle);
-		$(obj).append(bd.append(box.append(boxBd.append(boxTitle, boxDesc), subscript)));
 	}
 </script>
