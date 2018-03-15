@@ -18,6 +18,9 @@ class Sign extends Api {
 		array('y' => 34.370743, 'x' => 108.890995),
 		array('y' => 34.376459, 'x' => 108.912002)
 	);
+
+  const TIME_INTERVAL = 60;
+
 	public function _initialize() {
 		parent::_initialize();
 	}
@@ -92,7 +95,7 @@ class Sign extends Api {
 
 		//记录签到数据，若重新签到，最少间隔1分钟。
 		$time = time();
-		if ($time - $this->getUserSignTimeStamp($stu_id) < 60) {
+		if ($time - $this->getUserSignTimeStamp($stu_id) < self::TIME_INTERVAL ) {
 			$data['status'] = 'error';
 			$data['code']   = '0x2002';
 			$data['info']   = '请勿短时间内重复提交！';
@@ -262,8 +265,8 @@ class Sign extends Api {
 	 */
 	private function recordSignData($stu_id, $latitude, $longitude,
 								     $task_id) {
-		$point['x'] = $latitude;
-		$point['y'] = $longitude;
+		$point['x'] = $longitude;
+		$point['y'] = $latitude;
 		//bool(true or false)
 		$atSchool = $this->isPointInPolygon(self::SCHOOL_AREA, $point);
 		$data     = [
