@@ -26,9 +26,9 @@ class Notice extends Admin
     public function noticeList(){
       $order = $this->getOrder();
     	$map = $this->getMap();
-
+      //注意这里sign_task里的id必须换个别名，否则下面的编辑界面无法实现功能.
     	$data_list = Db::view('sign_notice')
-                    ->view('sign_task',['title'=>'task_title','id'],
+                    ->view('sign_task',['title'=>'task_title','id'=>'taskId'],
                         'sign_notice.task_id=sign_task.id')
                     ->where($map)
                     ->order($order)
@@ -51,7 +51,7 @@ class Notice extends Admin
       ];
       //定义编辑页面的字段
       $fields_edit = [
-        ['hidden', 'id'],
+        ['hidden','id'],
         ['text', 'title', '标题', '必填'],
         ['textarea', 'notice', '通知内容', '发布的通知的具体内容'],
       ];
@@ -65,8 +65,8 @@ class Notice extends Admin
     			['timestamp', '发布时间'],
     			['right_button', '操作', 'btn']
     		])
-        ->autoAdd($fields_add, 'sign_notice', '', 'timestamp|Y-m-d', '', true) // 添加新增按钮
-        ->autoEdit($fields_edit, 'sign_notice','','timestamp|Y-m-d') // 添加编辑按钮
+        ->autoAdd($fields_add, 'sign_notice', '', 'timestamp|Y-m-d H:i:m') // 添加新增按钮
+        ->autoEdit($fields_edit, 'sign_notice','','timestamp|Y-m-d H:i:m') // 添加编辑按钮
         ->addRightButton('delete') // 添加删除按钮
         ->addOrder(['timestamp']) // 添加排序
         ->addFilter(['task_title' => 'sign_task.title'])
