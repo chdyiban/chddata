@@ -128,7 +128,6 @@ class Sign extends Api {
 	public function getSignRate() {
 		//1.班级当前签到率
 		$stu_id = input('get.stu_id');
-		$stu_id = '2017901001';
 
 		$task_id  = $this->getSignTaskId($stu_id);
 		$class_id = $this->getClassId($stu_id);
@@ -156,7 +155,6 @@ class Sign extends Api {
 	 */
 	public function getNotSignList() {
 		$stu_id = input('get.stu_id');
-		// $stu_id = '2017901001';
 
 		$data = array();
 
@@ -174,16 +172,17 @@ class Sign extends Api {
 				       'YibanBaseInfo.number = SignRecord.stu_id')
 				->where('task_id', $task_id)
 				->where('class', $class_id)
+				->where('at_school',1)
 				->field('number,name')
 				->select();
 
 			//班级已签人数
 			// $data['sign_list'] = $signList;
-			$data['sign_count'] = count($signList);
+			
 
 			//班级总人数
-			$classCount            = $baseModel->getClassStuCount(
-								    $class_id);
+			$classCount = $baseModel->getClassStuCount($class_id);
+
 			$data['class_stu_num'] = $classCount;
 
 			$classList = Db::table('dp_yiban_base_info')
@@ -204,6 +203,7 @@ class Sign extends Api {
 			$data['class_id']       = $class_id;
 			$data['not_sign_list']  = $classList;
 			$data['not_sign_count'] = count($classList);
+			$data['sign_count'] = $classCount - $data['not_sign_count'];
 
 			return json($data);
 		}
