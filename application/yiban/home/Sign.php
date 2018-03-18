@@ -140,7 +140,7 @@ class Sign extends Api {
 			->where('class', $class_id)
 			->count();
 
-		$numberOfClass = Db::table('dp_sign_student')
+		$numberOfClass = Db::table('dp_yiban_base_info')
 			->where('class', $class_id)
 			->count();
 
@@ -186,7 +186,7 @@ class Sign extends Api {
 								    $class_id);
 			$data['class_stu_num'] = $classCount;
 
-			$classList = Db::table('dp_sign_student')
+			$classList = Db::table('dp_yiban_base_info')
 				->where('class', $class_id)
 				->field('number,name')
 				->select();
@@ -533,7 +533,7 @@ class Sign extends Api {
 	}
 
 	private function getClassId($stu_id) {
-		$class_id = Db::table('dp_sign_student')
+		$class_id = Db::table('dp_yiban_base_info')
 			->where('number', $stu_id)
 			->value('class');
 		return $class_id;
