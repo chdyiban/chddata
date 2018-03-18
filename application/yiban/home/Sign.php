@@ -134,8 +134,8 @@ class Sign extends Api {
 		$class_id = $this->getClassId($stu_id);
 
 		$signCount = Db::view('SignRecord', 'id,task_id,stu_id')
-			->view('SignStudent', 'name,class,number,admin_id',
-				       'SignStudent.number = SignRecord.stu_id')
+			->view('YibanBaseInfo', 'name,class,number,admin_id',
+				       'YibanBaseInfo.number = SignRecord.stu_id')
 			->where('task_id', $task_id)
 			->where('class', $class_id)
 			->count();
@@ -170,8 +170,8 @@ class Sign extends Api {
 			$class_id  = $baseModel->getClassId($stu_id);
 
 			$signList = Db::view('SignRecord', 'stu_id')
-				->view('SignStudent', 'name,number',
-				       'SignStudent.number = SignRecord.stu_id')
+				->view('YibanBaseInfo', 'name,number',
+				       'YibanBaseInfo.number = SignRecord.stu_id')
 				->where('task_id', $task_id)
 				->where('class', $class_id)
 				->field('number,name')
