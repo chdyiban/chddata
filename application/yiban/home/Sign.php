@@ -128,19 +128,17 @@ class Sign extends Api {
 	public function getSignRate() {
 		//1.班级当前签到率
 		$stu_id = input('get.stu_id');
-		//$stu_id = '2017901001';
-
 		$task_id  = $this->getSignTaskId($stu_id);
 		$class_id = $this->getClassId($stu_id);
 
 		$signCount = Db::view('SignRecord', 'id,task_id,stu_id')
-			->view('SignStudent', 'name,class,number,admin_id',
-				       'SignStudent.number = SignRecord.stu_id')
+			->view('YibanBaseInfo', 'name,class,number,admin_id',
+				       'YibanBaseInfo.number = SignRecord.stu_id')
 			->where('task_id', $task_id)
 			->where('class', $class_id)
 			->count();
 
-		$numberOfClass = Db::table('dp_sign_student')
+		$numberOfClass = Db::table('dp_yiban_base_info')
 			->where('class', $class_id)
 			->count();
 
@@ -156,7 +154,6 @@ class Sign extends Api {
 	 */
 	public function getNotSignList() {
 		$stu_id = input('get.stu_id');
-		// $stu_id = '2017901001';
 
 		$data = array();
 
@@ -170,23 +167,24 @@ class Sign extends Api {
 			$class_id  = $baseModel->getClassId($stu_id);
 
 			$signList = Db::view('SignRecord', 'stu_id')
-				->view('SignStudent', 'name,number',
-				       'SignStudent.number = SignRecord.stu_id')
+				->view('YibanBaseInfo', 'name,number',
+				       'YibanBaseInfo.number = SignRecord.stu_id')
 				->where('task_id', $task_id)
 				->where('class', $class_id)
+				->where('at_school',1)
 				->field('number,name')
 				->select();
 
 			//班级已签人数
 			// $data['sign_list'] = $signList;
-			$data['sign_count'] = count($signList);
+			
 
 			//班级总人数
-			$classCount            = $baseModel->getClassStuCount(
-								    $class_id);
+			$classCount = $baseModel->getClassStuCount($class_id);
+
 			$data['class_stu_num'] = $classCount;
 
-			$classList = Db::table('dp_sign_student')
+			$classList = Db::table('dp_yiban_base_info')
 				->where('class', $class_id)
 				->field('number,name')
 				->select();
@@ -204,6 +202,7 @@ class Sign extends Api {
 			$data['class_id']       = $class_id;
 			$data['not_sign_list']  = $classList;
 			$data['not_sign_count'] = count($classList);
+			$data['sign_count'] = $classCount - $data['not_sign_count'];
 
 			return json($data);
 		}
@@ -533,7 +532,7 @@ class Sign extends Api {
 	}
 
 	private function getClassId($stu_id) {
-		$class_id = Db::table('dp_sign_student')
+		$class_id = Db::table('dp_yiban_base_info')
 			->where('number', $stu_id)
 			->value('class');
 		return $class_id;

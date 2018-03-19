@@ -6,6 +6,8 @@ use think\Log;
 use think\Db;
 use think\Session;
 
+use app\face\model\face as FaceModel;
+
 /**
  * 人脸识别前端控制器
  * @package app\yiban\home
@@ -19,6 +21,8 @@ class Index extends Home
 	const FACESET_CREATE_API = 'https://api-cn.faceplusplus.com/facepp/v3/faceset/create';
 	const FACESET_ADDFACE_API = 'https://api-cn.faceplusplus.com/facepp/v3/faceset/addface';
 	const SEARCH_API = 'https://api-cn.faceplusplus.com/facepp/v3/search';
+
+	const FACE_PATH = ROOT_PATH.'public'.DS.'face';
 
 	public function index(){
         $outer_id = 'chd_test_outer_id';
@@ -39,6 +43,60 @@ class Index extends Home
     	
     	//dump($result);
     	
+	}
+
+    public function insertDb(){
+        /**
+		* 整体思路：
+        * 1.遍历文件夹目录，找到文件名
+        * 2.获取图片token，并将token/文件名/时间戳存入数据库
+        * 3.设置最大运行时间无限
+        */
+
+        //set_time_limit(0);
+
+        $path = ROOT_PATH.'public'.DS.'face';
+		$trees = $this -> getFile(self::FACE_PATH);
+		
+		$model = new FaceModel;
+
+        foreach ($trees as $key => $value) {
+			$data[$key]['file'] = $value['src'];
+			$data[$key]['info'] = $value['title'];
+		}
+
+		$result = $model->addFiles2Db($data);
+		echo $result;
+		//echo $model->getLastSql();
+	}
+	
+	public function insertFaceTokenDb(){
+
+		$id = input('get.id');
+
+		$model = new FaceModel;
+		$map['token'] = 'NOT NULL';
+		$result = $model->where('token','')
+			->order('id ASC')
+			->field('id,file')
+			->find();
+
+		$token = $this->getFaceToken($result['file']);
+		echo $token;
+		// $ret = $this->faceset_addface($token,'chd_test_outer_id');
+		// $ret = json_decode($ret,true);
+
+		// if($ret['face_added']){
+
+		// 	$updateResult = $model->where('id', $result['id'])->update(['token' => $token]);
+		// 	dump($ret);
+		// 	echo '<br/>'.$result['id'];
+
+		// 	echo '<script>window.location.reload();</script>';
+		// }else{
+		// 	dump( $ret['failure_detail']) ;
+		// }
+
 	}
 
     protected function detectByPicUrl($pic){
@@ -86,7 +144,7 @@ class Index extends Home
 	private function getFaceToken($file){
         $face_token = '';
 		$result = json_decode($this->detect($file),true);
-
+		dump($result);
 
     	if(array_key_exists('error_message',$result)){
     		//失败处理
@@ -226,4 +284,22 @@ class Index extends Home
     	    return $response;
     	}
 	}
+
+    private function getFile($path){
+        $tree = array(); 
+        foreach(glob($path.DS.'*') as $key => $single){ 
+            if(is_dir($single)){ 
+                $tree = array_merge($tree,$this->getFile($single)); 
+            } 
+            else{ 
+                
+                $tree[$key]['src'] = $single;
+                $subStr1 = explode(DS, $single);
+                $subStr2 = explode('.',end($subStr1));
+                $tree[$key]['title'] = $subStr2[0];
+            } 
+        } 
+        return $tree; 
+
+    }
 }
