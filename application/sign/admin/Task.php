@@ -105,7 +105,4 @@ class Task extends Admin
         ->setPageTitle('正常任务')
         ->fetch();
   }
-
-
-
 }
