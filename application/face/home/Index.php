@@ -142,6 +142,7 @@ class Index extends Home
 
 
 	private function getFaceToken($file){
+		dump($file);
         $face_token = '';
 		$result = json_decode($this->detect($file),true);
 		dump($result);
@@ -180,7 +181,7 @@ class Index extends Home
     		), 
     		CURLOPT_HTTPHEADER => array("cache-control: no-cache",),
     	));   
-    	$response = curl_exec($curl);
+    	$response = curl_exec($curl); dump($response);
     	$err = curl_error($curl);   
     	curl_close($curl);   
     	if ($err) {

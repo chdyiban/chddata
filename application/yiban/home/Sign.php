@@ -128,7 +128,6 @@ class Sign extends Api {
 	public function getSignRate() {
 		//1.班级当前签到率
 		$stu_id = input('get.stu_id');
-
 		$task_id  = $this->getSignTaskId($stu_id);
 		$class_id = $this->getClassId($stu_id);
 
