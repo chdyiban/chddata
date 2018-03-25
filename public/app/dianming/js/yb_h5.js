@@ -51,6 +51,8 @@ function yibanhtml5location(postion) {
 	marker.setMap(map);
 	marker.setPosition([pos.longitude, pos.latitude]);
 	map.setCenter([pos.longitude, pos.latitude]);
+	$("#geoError").hide();
+	$("#attend").data("ongeo", false);
 	//	map.setFitView().getCenter();
 }
 
