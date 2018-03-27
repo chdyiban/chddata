@@ -9,3 +9,4 @@ composer.lock
 *.log
 /application/database.php
 /application/database_chd.php
+/public/face/*
