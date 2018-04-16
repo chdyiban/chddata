@@ -6,6 +6,8 @@ use think\Log;
 use think\Db;
 use think\Session;
 
+use util\Compress;
+
 use app\face\model\face as FaceModel;
 
 /**
@@ -25,7 +27,7 @@ class Index extends Home
 	const FACE_PATH = ROOT_PATH.'public'.DS.'face';
 
 	public function index(){
-        $outer_id = 'chd_test_outer_id';
+        $outer_id = 'chd_wrws_outer_id';
 
 		//4d23b437c16425ab03e470423a17d10d
 		//$image = ROOT_PATH.'public'.DS.'face'.DS."白佳男 计算机类 计算机一班 陕西省榆林市.jpg";
@@ -34,6 +36,8 @@ class Index extends Home
 		$image = ROOT_PATH.'public'.DS.'face'.DS."房晓宇 计算机类 计算机一班 河北省石家庄市.jpg";
 		$face_token = $this->getFaceToken($image);
 		echo 'face_token:'.$face_token.'<br/>';
+
+
     	
     	//$result = $this->faceset_addface($face_token,$outer_id);
 
@@ -42,6 +46,9 @@ class Index extends Home
 
     	
     	//dump($result);
+        //1: insertDb()
+        //2: insertFaceTokenBb()
+        //3: search($face_token,$outer_id)
     	
 	}
 
@@ -80,22 +87,23 @@ class Index extends Home
 			->order('id ASC')
 			->field('id,file')
 			->find();
+        echo $result['file'];
 
 		$token = $this->getFaceToken($result['file']);
-		echo $token;
-		// $ret = $this->faceset_addface($token,'chd_test_outer_id');
-		// $ret = json_decode($ret,true);
 
-		// if($ret['face_added']){
+		$ret = $this->faceset_addface($token,'chd_wrws_outer_id');
+		$ret = json_decode($ret,true);
 
-		// 	$updateResult = $model->where('id', $result['id'])->update(['token' => $token]);
-		// 	dump($ret);
-		// 	echo '<br/>'.$result['id'];
+		if($ret['face_added']){
 
-		// 	echo '<script>window.location.reload();</script>';
-		// }else{
-		// 	dump( $ret['failure_detail']) ;
-		// }
+			$updateResult = $model->where('id', $result['id'])->update(['token' => $token]);
+			dump($ret);
+			echo '<br/>'.$result['id'];
+
+			echo '<script>window.location.reload();</script>';
+		}else{
+			dump( $ret['failure_detail']) ;
+		}
 
 	}
 
@@ -144,10 +152,19 @@ class Index extends Home
 	private function getFaceToken($file){
         $face_token = '';
 		$result = json_decode($this->detect($file),true);
-		dump($result);
+        if(!is_array($result)){
+            $handle = new Compress($file);
+            $image = $handle->compressImg($file);
+            return $this->getFaceToken($file);
+        }
 
     	if(array_key_exists('error_message',$result)){
     		//失败处理
+            if(strpos($result['error_message'],'image_file')){
+                $handle = new Compress($file);
+                $image = $handle->compressImg($file);
+                return $this->getFaceToken($file);
+            }
     	}else{
     		$face_token = $result['faces'][0]['face_token'];
     	}	
@@ -180,7 +197,7 @@ class Index extends Home
     		), 
     		CURLOPT_HTTPHEADER => array("cache-control: no-cache",),
     	));   
-    	$response = curl_exec($curl);
+    	$response = curl_exec($curl); dump($response);
     	$err = curl_error($curl);   
     	curl_close($curl);   
     	if ($err) {
@@ -209,8 +226,8 @@ class Index extends Home
     			'api_key'=>$this->api_key,
     			'api_secret'=>$this->api_secret,
 
-    			'display_name'=>'chd_test_display_name',
-    			'outer_id'=>'chd_test_outer_id',    			
+    			'display_name'=>'chd_wrws_display_name',
+    			'outer_id'=>'chd_wrws_outer_id',    			
     		), 
     		CURLOPT_HTTPHEADER => array("cache-control: no-cache",),
     	));   

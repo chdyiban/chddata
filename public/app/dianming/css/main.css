@@ -23,7 +23,13 @@ body {
 	background-color: #EEEEEE;
 	margin-top: 0;
 }
-
+.geoError {
+    position: absolute;
+    top: 3rem;
+    width: 50%;
+    transform: translateX(-50%);
+    margin-left: 50%;
+}
 .weui-tabbar__icon.iconfont {
 	line-height: 1.2em;
 }

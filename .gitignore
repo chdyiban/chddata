@@ -8,4 +8,9 @@ composer.lock
 /.project
 *.log
 /application/database.php
+<<<<<<< HEAD
 /application/database2.php
+=======
+/application/database_chd.php
+/public/face/*
+>>>>>>> 0132c90beb67dd854c6303d9a2030e5af3e8bf81
