@@ -8,3 +8,4 @@ composer.lock
 /.project
 *.log
 /application/database.php
+/application/database2.php
