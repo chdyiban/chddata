@@ -290,26 +290,19 @@ class Sportsscore extends Home
         $time = time();
         $request = Request::instance();
         $ip = $request->ip();
+        $ip_nums = $this->check_ip($ip);
         $YXDM = $request ->get('id');
         $res = Db::name('sports_vote');
         $isHave = $res->where('ip',$ip)
                 ->order('time DESC')
                 ->select();
+        $last_time = strtotime("-1 minutes");
 
         if($isHave){
-            $mid = $time - $isHave[0]['time'];
-            //计算小时数
-            $remain = $mid%86400;
-            $hours = intval($remain/3600);
-            //计算分钟数
-            $remain = $remain%3600;
-            $mins = intval($remain/60);
-            $secs = $remain%60;
-            // dump($secs);
-            // dump($mins);
-            if($mins < 1 && $secs < 10){
+            $nums = $this->check_ip($ip);
+            if($nums > 30){
                 $data['code'] = 403;
-                $data['msg'] = '投票频率有点高哦！';
+                $data['msg'] = '请一分钟后再试';
                 return json($data);
             }else{
                 $result = $res->insert([
@@ -335,9 +328,14 @@ class Sportsscore extends Home
     }
 
     private function check_ip($ip){
-        $number = $res->where('ip',$ip)
-            ->order('time DESC')
-            ->count();
+        $time = time();
+        $last_time = strtotime("-1 minutes");
+        $number = Db::name('sports_vote')
+                    ->where('ip',$ip)
+                    ->where('time','<=',$time)
+                    ->where('time','>=',$last_time)
+                    ->order('time DESC')
+                    ->count();
         return $number;
     }
 }

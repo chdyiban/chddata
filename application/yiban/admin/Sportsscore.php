@@ -61,6 +61,7 @@ class Sportsscore extends Admin
             ->addColumn('right_button', '操作', 'btn')
             ->autoAdd($fields_add, 'sports_score', '', '', '', true)
             ->autoEdit($fields_edit, 'sports_score', '', '', '', true)
+            ->addRightButton('delete', ['table' => 'sports_score'])
             ->setRowList($data_list) // 设置表格数据
             ->fetch(); // 渲染模板
     }
@@ -83,9 +84,9 @@ class Sportsscore extends Admin
             ['number', 'sports_day', '比赛日期'],
             ['number', 'status', '比赛状态'],
         ];
-
+        
         $order = $this->getOrder();
-    	$map = $this->getMap();
+        $map = $this->getMap();
 
         $data_list = Db::name('sports_date') 
             ->where($map)
