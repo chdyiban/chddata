@@ -34,6 +34,8 @@ class Sportsscore extends Home
                 ->where('YXDM','<>','1801')
                 ->where('YXDM','<>','9999')
                 ->where('YXDM','<>','5100')
+                ->where('YXDM','<>','1500')
+                ->where('YXDM','<>','1400')
                 ->select();
         //用来获取学院的投票数
         $vote1 = array();
