@@ -60,7 +60,7 @@ class BaseInfo extends Model
 	* @param $stu_id 学号
 	*/
 	public function getBaseInfoById($stu_id){
-		$retInfo = $this->where('number',$stu_id)->column('number,class,major,college,sex,mobile,class');
+		$retInfo = $this->where('number',$stu_id)->column('number,class,major,college,sex,mobile,class,NJ');
 		if($retInfo){
 			return $retInfo[$stu_id];
 		}else{

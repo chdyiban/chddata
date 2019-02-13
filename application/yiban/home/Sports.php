@@ -45,6 +45,7 @@ class Sports extends Api
             $personalInitData['class_id'] = $stuBaseInfo['class'];
             $personalInitData['sex'] = $stuBaseInfo['sex'];
             $personalInitData['mobile'] = $stuBaseInfo['mobile'];
+            $personalInitData['NJ'] = $stuBaseInfo['NJ'];
             $personalInitData['head_img'] = $stuInfo->yb_userhead;
 
             $this->initData['personal'] = $personalInitData;
@@ -107,17 +108,42 @@ class Sports extends Api
     		$j++;
     	}
 
-    	$model = new SportsModel;
-		
-		if($model -> submit($insert_data)){
-			$data['status'] = 'success';
-			$data['info'] = '报名成功';
-		}else{
+		$model = new SportsModel;
+		$checkCountResult = $this -> checkCount($stu_id,count($insert_data));
+		if ($checkCountResult) {
+			if($model -> submit($insert_data)){
+				$data['status'] = 'success';
+				$data['info'] = '报名成功';
+			}else{
+				$data['status'] = 'error';
+				$data['info'] = '报名失败';
+				$data['code'] = '0x6003';
+			}
+		} else {
 			$data['status'] = 'error';
-    		$data['info'] = '签到失败';
-    		$data['code'] = '0x6003';
+			$data['info'] = '项目数目有误';
+			$data['code'] = '0x6004';
 		}
 		return json($data);
-    }
+	}
 
+	/**
+	 * 判断学生所报项目个数是否满足要求
+	 * @param stu_id,item_count
+	 * @return bool
+	 */
+	private function checkCount($stu_id,$item_count)
+	{
+		$model = new BaseModel;
+		$stuBaseInfo = $model->getBaseInfoById($stu_id);
+		$nj = $stuBaseInfo['NJ'];
+		if ($nj == "2017") {
+			$return = $item_count >= 2 ? true : false;
+		} elseif ($nj == "2018") {
+			$return = $item_count >= 4 ? true : false;
+		} else {
+			$return = false;
+		}
+		return $return;
+	}
 }
