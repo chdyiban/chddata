@@ -33,7 +33,6 @@ class Sports extends Api
 		}
 
         $stuInfo = $this->getStudentInfo($this->token);
-        
         if($stuInfo != false){
             $model = new BaseModel;
             $stuBaseInfo = $model->getBaseInfoById($stuInfo->yb_studentid);
@@ -109,12 +108,20 @@ class Sports extends Api
     	}
 
 		$model = new SportsModel;
+		$checkCollegeResult = $this -> checkCollege($stu_id);
+		if (!$checkCollegeResult) {
+			$data['status'] = 'error';
+			$data['info'] = '报名信息有误';
+			$data['code'] = '0x6005';
+			return json($data);
+		}
+
 		$checkCountResult = $this -> checkCount($stu_id,count($insert_data));
 		if ($checkCountResult) {
 			if($model -> submit($insert_data)){
 				$data['status'] = 'success';
 				$data['info'] = '报名成功';
-			}else{
+			} else {
 				$data['status'] = 'error';
 				$data['info'] = '报名失败';
 				$data['code'] = '0x6003';
@@ -136,11 +143,32 @@ class Sports extends Api
 	{
 		$model = new BaseModel;
 		$stuBaseInfo = $model->getBaseInfoById($stu_id);
-		$nj = $stuBaseInfo['NJ'];
-		if ($nj == "2017") {
-			$return = $item_count >= 2 ? true : false;
-		} elseif ($nj == "2018") {
-			$return = $item_count >= 4 ? true : false;
+		if ($stuBaseInfo) {
+			$nj = $stuBaseInfo['NJ'];
+			if ($nj == "2017") {
+				$return = $item_count >= 2 ? true : false;
+			} elseif ($nj == "2018") {
+				$return = $item_count >= 4 ? true : false;
+			} else {
+				$return = false;
+			}
+		} else {
+			$return = false;
+		}
+		return $return;
+	}
+	/**
+	 * 判断学生学院是否符合要求
+	 * @param stu_id
+	 * @return bool
+	 */
+	private function checkCollege($stu_id)
+	{
+		$model = new BaseModel;
+		$stuBaseInfo = $model->getBaseInfoById($stu_id);
+		if ($stuBaseInfo) {
+			$college = $stuBaseInfo['college'];
+			$return =  $college == "信息工程学院" ? true : false;
 		} else {
 			$return = false;
 		}
